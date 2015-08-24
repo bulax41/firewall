@@ -1,0 +1,66 @@
+#!/bin/bash
+
+LOGFILE=/var/log/fwchangelog 
+COMMAND=rmfw-rule
+log() {
+   message="$@"
+   echo "$(date +%c) $COMMAND $message">>$LOGFILE
+   logger -t $COMMAND "$message"
+}
+
+NARGS=$(echo $@ | wc -w)
+if [ $NARGS -le 2 ]; then
+	echo "Insufficient Args"
+	echo
+	echo "Usage: rmfw-rule (in|out) 'IP Address' 'Line'"
+	echo "Example: rmfw-rule in 172.16.3.151 2"
+	echo
+        exit
+fi
+
+if [ "x$1" != "xin" -a "x$1" != "xout" ]; then
+        echo "Arg 1: in or out ($1) "
+	echo
+	echo "Usage: rmfw-rule (in|out) 'IP Address' 'Line'"
+	echo "Example: rmfw-rule in 172.16.3.151 2"
+        echo
+        exit
+fi
+
+if [ "x$2" = "x" ]; then
+        echo "Arg 2: Please enter an IP Address here ($2)"
+        echo
+	echo "Usage: rmfw-rule (in|out) 'IP Address' 'Line'"
+	echo "Example: rmfw-rule in 172.16.3.151 2"
+        echo
+        exit
+fi
+
+if [ "x$3" = "x" ]; then
+	echo "Arg 3: Please enter a line number to delete here ($3)"
+	echo
+	echo "Usage: rmfw-rule (in|out) 'IP Address' 'Line'"
+	echo "Example: rmfw-rule in 172.16.3.151 2"
+        echo
+        exit
+fi
+
+if [ $1 = "in" ]; then
+	CHAIN="INBOUND-$2"
+else
+	CHAIN="OUTBOUND-$2"
+fi
+
+iptables -L $CHAIN -nv > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+	echo 
+	echo "There is no IP Rule for $CHAIN to delete"
+	echo
+	exit
+fi
+
+iptables -D $CHAIN $3
+log iptables -D $CHAIN $3
+
+
+

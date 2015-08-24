@@ -1,0 +1,29 @@
+#!/bin/bash
+
+NARGS=$(echo $@|wc -w)
+if [ $NARGS -ne 1 ]; then
+   echo "Insufficient Args"
+   echo
+   echo "Usage: lsipsec ('ConnID'|all)"
+   echo "Example: lsipsec foo"
+   echo 
+   exit
+fi
+
+FILEPATH=/etc/ipsec.d
+CONNID=$1
+
+ls $FILEPATH |grep $CONNID'[0-9]{2,4}'\.conf|wc -l > /dev/null 2>&1
+if [ $? -ne 0 ]; then 
+   echo "WARNING: There are no tunnels for $CONNID"
+   exit
+fi
+
+if [ "x$CONNID" = "xall" ]; then
+   ls $FILEPATH |grep '.*secrets'|cut -d "." -f 1
+   exit
+fi
+
+ls $FILEPATH |grep ''$CONNID'.*conf'|cut -d "." -f 1
+
+exit

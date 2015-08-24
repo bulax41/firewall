@@ -1,0 +1,82 @@
+#!/bin/bash
+
+LOGFILE=/var/log/fwchangelog 
+COMMAND=mklvs-service
+log() {
+   message="$@"
+   echo "$(date +%c) $COMMAND $message">>$LOGFILE
+   logger -t $COMMAND "$message"
+}
+
+NARGS=$(echo $@ | wc -w)
+if [ $NARGS -le 1 ]; then
+   echo "Insufficient Arguments"
+   echo
+   echo "Usage: mklvs-service (tcp|udp) 'Virtual IP/Netmask:Port'"
+   echo "Example: mklvs-service tcp 192.168.0.1/24:80" 
+   echo
+   exit
+fi
+
+LOIP=$(echo $2| cut -d ":" -f 1)
+IP=$(echo $2|cut -d ":" -f 1|cut -d "/" -f 1)
+NETMASK=$(echo $2|cut -d ":" -f 1|cut -d "/" -f 2)
+PORT=$(echo $2| cut -d ":" -f 2)
+
+if [ "x$1" != "xtcp" -a "x$1" != "xudp" ]; then
+   echo "Arg1: tcp or udp ($1)"
+   echo
+   echo "Usage: mklvs-service (tcp|udp) 'Virtual IP:Port' 'Netmask'"
+   echo "Example: mklvs-service tcp 192.168.0.1/24:80"
+   echo
+   exit
+fi
+
+if [ "$NETMASK" -lt "0" -o "$NETMASK" -gt "32" ]; then
+   echo "Arg3: 0-32 ($NETMASK)"
+   echo 
+   echo "Usage: mklvs-service (tcp|udp) 'Virtual IP:Port' 'Netmask'"
+   echo "Example: mklvs-service tcp 192.168.0.1:80 24"
+   echo
+   exit
+fi
+
+if [ $1 = "tcp" ]; then
+   PROTO="-t"
+elif [ $1 = "udp" ]; then
+   PROTO="-u" 
+else
+   exit
+fi
+
+ipvsadm -L -n $PROTO $IP:$PORT > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+   echo "WARNING: The Virtual Service $IP:$PORT already exists"
+   exit
+else
+   ipvsadm -A $PROTO $IP:$PORT -s rr
+   log ipvsadm -A $PROTO $IP:$PORT -s rr
+fi
+
+
+iptables -L INPUT -nv | grep $IP | grep $PORT > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+   echo "INPUT rule for $IP $1 port $PORT already exists"
+   echo
+   exit
+else
+   LNUM=$(iptables -L INPUT -nv --line-numbers|tail -1|awk '{print $1}')
+   iptables -I INPUT $LNUM -j ACCEPT -d $IP -p $1 --dport $PORT
+   log iptables -I INPUT $LNUM -j ACCEPT -d $IP -p $1 --dport $PORT
+vtysh << EEND
+conf term
+interface lo
+ip address $LOIP
+end
+copy run start
+EEND
+log "add $LOIP to loopback interface"
+
+fi
+
+exit

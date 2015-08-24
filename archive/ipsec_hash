@@ -1,0 +1,53 @@
+#!/bin/bash
+
+
+LOGFILE=/var/log/fwchangelog 
+COMMAND=ipsec_hash
+log() {
+   message="$@"
+   echo "$(date +%c) $COMMAND $message">>$LOGFILE
+   logger -t $CONTROL "$message"
+}
+
+connection(){
+sed -i '/left=/ c\   left='$NFPUBIP'' ${CLIENTPATH}
+sed -i '/leftsubnet=/ c\   leftsubnet='$NFSN'\/'$NFMASK'' ${CLIENTPATH}
+sed -i '/leftid=/ c\   leftid='$NFPUBIP'' ${CLIENTPATH}
+sed -i '/right=/ c\   right='$CLIENTIP'' ${CLIENTPATH}
+sed -i '/rightsubnet=/ c\   rightsubnet='$CLIENTSN'\/'$CLIENTMASK'' ${CLIENTPATH}
+sed -i '/rightid=/ c\   rightid='$CLIENTIP'' ${CLIENTPATH} 
+log "left=$NFPUBIP"
+log "leftsubnet=$NFSUBNET"
+log "right=$CLIENTIP"
+log "rightsubnet=$CLIENTSUBNET"
+log
+}
+
+NARGS=$(echo $@|wc -w)
+if [ $NARGS -le 4 ]; then
+   echo "Insufficient Args"
+   echo
+   echo "Usage: ipsec-policy 'ClientID' 'NF Public IP' 'NF Subnet' 'Client IP' 'Client Subnet'"
+   echo "Example: ipsec-policy NFLLC 64.191.236.17 172.16.205.0/24 74.125.127.100 10.205.2.0/24"
+   echo 
+   exit
+fi
+
+FILEPATH=/etc/ipsec.d
+CLIENTCON=$1
+NFPUBIP=$2
+CLIENTIP=$4
+CLIENTPATH="$FILEPATH/$CLIENTCON.conf"
+NFSN=$(echo $3 | cut -d "/" -f 1)
+NFMASK=$(echo $3 | cut -d "/" -f 2)
+CLIENTSN=$(echo $5 | cut -d "/" -f 1)
+CLIENTMASK=$(echo $5 | cut -d "/" -f 2)
+
+ls $FILEPATH/$CLIENTCON.conf > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+   connection 
+else
+   echo "WARNING: There is no $CLIENTCON.conf file"
+   exit
+fi
+

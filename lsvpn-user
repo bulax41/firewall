@@ -1,0 +1,4 @@
+#!/bin/bash
+
+echo 'select username,password from users' | mysql openvpn
+

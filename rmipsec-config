@@ -1,0 +1,40 @@
+#!/bin/bash
+
+NARGS=$(echo $@|wc -w)
+if [ $NARGS -le 1 ]; then
+   echo "Insufficient Args"
+   echo
+   echo "Usage: ipsec-config 'ConnID' "
+   echo "Example: ipsec-config foo01 "
+   echo
+   exit
+fi
+
+FILEPATH=/etc/ipsec.d
+CONNID=$1
+SECRETS="$FILEPATH/$CONNID.secrets"
+CONF=$FILEPATH/$CONNID.conf
+RIGHTPUBIP=$(awk '{print $1}' $SECRETS)
+
+
+####
+# Delete config files
+####
+rm -f $CONF $SECRETS
+
+#####
+# Delete IPTables Rules
+####
+NUM=$(iptables -L OUTBOUND_VPN_PEERS -nv --line-numbers|awk "/$RIGHTPUBIP/ {print $1}")
+iptables -D OUTBOUND_VPN_PEERS $NUM
+NUM=$(iptables -L INBOUND_VPN_PEERS -nv --line-numbers|awk "/$RIGHTPUBIP/ {print $1}")
+iptables -D INBOUND_VPN_PEERS $NUM
+
+#####
+# Remove from ipsec daemon
+#####
+ipsec auto --down $CONNID
+ipsec auto --delete $CONNID
+ipsec secrets
+
+exit 0

@@ -1,0 +1,15 @@
+#!/bin/bash
+OPENVPNDIR=/etc/openvpn/clients
+
+if [ "x$1" = "x" ]; then
+        echo
+        echo "Usage: rmfw-clientconfig CLIENTID"
+        echo
+        exit
+fi
+
+rm -f $OPENVPNDIR/$1
+
+
+
+

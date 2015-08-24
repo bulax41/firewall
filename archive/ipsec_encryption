@@ -1,0 +1,53 @@
+#!/bin/bash
+
+LOGFILE=/var/log/fwchangelog 
+COMMAND=ipsec_encryption
+log() {
+   message="$@"
+   echo "$(date +%c) $COMMAND $message">>$LOGFILE
+   logger -t $COMMAND "$message"
+}
+
+aes(){
+   sed -i 's/3des/aes/g' ${CONNPATH}
+   sed -i 's/aes/aes/g' ${CONNPATH}
+   log "Changed encryption to AES in $CONNPATH"
+}
+
+3des(){
+   sed -i 's/aes/3des/g' ${CONNPATH}
+   sed -i 's/3des/3des/g' ${CONNPATH}
+   log "Changed encryption to 3DES in $CONNPATH"
+}
+
+NARGS=$(echo $@|wc -w)
+if [ $NARGS -ne 2 ]; then
+   echo "Insufficient Args"
+   echo
+   echo "Usage: ipsec-encryption 'ConnID' (aes|3des)"
+   echo "Example: ipsec-policy foo01 3des"
+   echo 
+   exit
+fi
+
+FILEPATH=/etc/ipsec.d
+CONNID=$1
+ENC=$2
+
+CONNPATH="$FILEPATH/$CONNID.conf"
+
+ls $CONNPATH.conf > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+   if [ "x$ENC" = "xaes" ]; then
+      aes
+   elif [ "x$ENC" = "x3des" ]; then
+      3des
+   else
+      echo "INVALID OPTION"
+      exit
+   fi 
+else
+   echo "WARNING: There is no $CONNID.conf file"
+   exit
+fi
+

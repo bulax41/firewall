@@ -1,0 +1,76 @@
+#!/bin/bash
+
+if [ "x$1" = "x" ]; then
+        echo
+        echo "Usage: mkfw-ip 'IP Address'"
+        echo "Example: mkfw-ip 172.16.100.11" 
+        echo
+        exit
+fi
+
+ETH=$(echo $1 |tr [:lower:] [:upper:])
+PIP=$1
+CHAIN_ETH_IN="INBOUND"
+CHAIN_ETH_OUT="OUTBOUND"
+CHAIN_IP_IN="INBOUND-$PIP"
+CHAIN_IP_OUT="OUTBOUND-$PIP"
+
+###################################
+#
+# Create IP Chain
+# OUT Default: ESTABLISHED,RELATED,ICMP-ECHO
+# IN Default: ESTABLISHED,RELATED,ICMP-ECHO
+#
+###################################
+iptables -L $CHAIN_IP_IN > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+        echo "WARNING: $CHAIN_IP_IN already exists"
+else 
+	iptables -N $CHAIN_IP_IN
+	iptables -A $CHAIN_IP_IN -m state --state ESTABLISHED -j ACCEPT
+	iptables -A $CHAIN_IP_IN -m state --state RELATED -j ACCEPT
+	iptables -A $CHAIN_IP_IN -m state --state INVALID -j DROPnLOG
+	iptables -A $CHAIN_IP_IN -p icmp --icmp-type echo-request -j ACCEPT
+	iptables -A $CHAIN_IP_IN -i eth1 -s 172.17.1.0/24 -j ACCEPT
+        iptables -A $CHAIN_IP_IN -i eth1 -s 172.17.2.0/24 -j ACCEPT
+        iptables -A $CHAIN_IP_IN -s 64.191.236.0/24 -p tcp --dport 9998 -j ACCEPT
+        iptables -A $CHAIN_IP_IN -s 208.78.36.0/22 -p tcp --dport 9998 -j ACCEPT
+	iptables -A $CHAIN_IP_IN -j DROPnLOG
+fi
+iptables -L $CHAIN_IP_OUT > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+        echo "WARNING: $CHAIN_IP_OUT already exists"
+else
+        iptables -N $CHAIN_IP_OUT
+	iptables -A $CHAIN_IP_OUT -m state --state RELATED -j ACCEPT
+	iptables -A $CHAIN_IP_OUT -m state --state ESTABLISHED -j ACCEPT
+	iptables -A $CHAIN_IP_OUT -m state --state INVALID -j DROPnLOG
+        iptables -A $CHAIN_IP_OUT -p icmp --icmp-type echo-request -j ACCEPT
+	iptables -A $CHAIN_IP_OUT -d 64.191.236.35/32 -p tcp --dport 3128 -j ACCEPT
+	iptables -A $CHAIN_IP_OUT -d 64.191.236.17/32 -p udp --dport 53 -j ACCEPT
+	iptables -A $CHAIN_IP_OUT -d 64.191.236.18/32 -p udp --dport 53 -j ACCEPT
+	iptables -A $CHAIN_IP_OUT -d 64.191.236.17/32 -p tcp --dport 53 -j ACCEPT
+	iptables -A $CHAIN_IP_OUT -d 64.191.236.18/32 -p tcp --dport 53 -j ACCEPT
+	iptables -A $CHAIN_IP_OUT -p tcp --dport 123 -j ACCEPT
+	iptables -A $CHAIN_IP_OUT -j DROPnLOG
+fi
+
+###################################
+#
+# Rules in ETH Chain
+# jump to IP Chain
+#
+###################################
+iptables -L $CHAIN_ETH_IN -n | grep -q "^$CHAIN_IP_IN "
+if [ $? -eq 0 ]; then
+        echo "WARNING: RULE $CHAIN_IP_IN already exists"
+else
+        iptables -A $CHAIN_ETH_IN -d $1 -j $CHAIN_IP_IN
+fi
+iptables -L $CHAIN_ETH_OUT -n | grep -q "^$CHAIN_IP_OUT "
+if [ $? -eq 0 ]; then
+        echo "WARNING: RULE $CHAIN_IP_OUT already exists"
+else
+        iptables -A $CHAIN_ETH_OUT -s $1 -j $CHAIN_IP_OUT
+fi
+

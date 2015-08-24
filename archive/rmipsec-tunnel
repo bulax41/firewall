@@ -1,0 +1,48 @@
+#!/bin/bash
+
+LOGFILE=/var/log/fwchangelog 
+COMMAND=rmipsec-tunnel
+log() {
+   message="$@"
+   echo "$(date +%c) $COMMAND $message">>$LOGFILE
+   logger -t ipsec_control "$message"
+}
+
+NARGS=$(echo $@|wc -w)
+if [ $NARGS -ne 1 ]; then
+   echo "Insufficient Args"
+   echo
+   echo "Usage: rmipsec-tunnel 'ConnID'"
+   echo "Example: rmipsec-tunnel foo01"
+   echo 
+   exit
+fi
+
+FILEPATH=/etc/ipsec.d
+CONNID=$1
+CONNCONFIGPATH="$FILEPATH/$CONNID.conf"
+CONNSECRETPATH="$FILEPATH/$CONNID.secrets"
+
+ls $CONNCONFIGPATH > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+   echo "WARNING: The config file for connection $CONNID does not exist"
+   exit
+fi
+
+ls  $CONNSECRETPATH > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+   echo "WARNING: The secret file for connection $CONNID does not exist"
+   exit
+fi
+
+./ipsec_control $CONNID down
+log ./ipsec_control $CONNID down
+./ipsec_control $CONNID delete
+log ./ipsec_control $CONNID delete
+
+rm -f $CONNCONFIGPATH
+log "Deleted $CONNCONFIGPATH"
+rm -f $CONNSECRETPATH
+log "Deleted $CONNSECRETPATH"
+
+exit

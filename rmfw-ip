@@ -1,0 +1,63 @@
+#!/bin/bash
+
+LOGFILE=/var/log/fwchangelog 
+COMMAND=rmfw-ip
+log() {
+   message="$@"
+   echo "$(date +%c) $COMMAND $message">>$LOGFILE
+   logger -t $COMMAND "$message"
+}
+
+if [ "x$1" = "x" ]; then
+        echo
+        echo "Usage: rmfw-ip 'IP Address'"
+        echo "Example: rmfw-ip 172.16.100.11" 
+        echo
+        exit
+fi
+
+PIP=$1
+CHAIN_ETH_IN="INBOUND"
+CHAIN_ETH_OUT="OUTBOUND"
+CHAIN_IP_IN="INBOUND-$PIP"
+CHAIN_IP_OUT="OUTBOUND-$PIP"
+
+###################################
+#
+# DELETE IP Chain
+# OUT Default: Any
+# IN Default: ESTABLISHED,RELATED,ICMP-ECHO
+#
+###################################
+iptables -L $CHAIN_IP_IN > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+	iptables -F $CHAIN_IP_IN
+	log iptables -F $CHAIN_IP_IN
+	LINE=$(iptables -L $CHAIN_ETH_IN -nv --line-numbers | awk "\$4 ~ /$CHAIN_IP_IN/ {print \$1}")
+	if [ "x$LINE" != "x" ]; then 
+		iptables -D $CHAIN_ETH_IN $LINE
+		iptables -X $CHAIN_IP_IN
+		log iptables -D $CHAIN_ETH_IN $LINE
+		log iptables -X $CHAIN_IP_IN
+	fi
+else 
+       iptables -X $CHAIN_IP_IN 
+       log iptables -X $CHAIN_IP_IN 
+fi
+iptables -L $CHAIN_IP_OUT > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+        iptables -F $CHAIN_IP_OUT
+        log iptables -F $CHAIN_IP_OUT
+	LINE=$(iptables -L $CHAIN_ETH_OUT -nv --line-numbers | awk "\$4 ~ /$CHAIN_IP_OUT/ {print \$1}")
+	if [ "x$LINE" != "x" ]; then 
+		iptables -D $CHAIN_ETH_OUT $LINE
+		iptables -X $CHAIN_IP_OUT
+		log iptables -D $CHAIN_ETH_OUT $LINE
+		log iptables -X $CHAIN_IP_OUT
+	fi
+else
+        iptables -X $CHAIN_IP_OUT
+        log iptables -X $CHAIN_IP_OUT
+fi
+
+./rmfw-nat $PIP

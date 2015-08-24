@@ -1,0 +1,42 @@
+#!/bin/bash
+
+
+NARGS=$(echo $@|wc -w)
+if [ $NARGS -le 2 ]; then
+   echo "Insufficient Args"
+   echo
+   echo "Usage: ipsec-peer 'ConnID' 'My IP' 'Peer IP' 'PSK'"
+   echo "Example: ipsec-peer foo01 1.1.1.1 2.2.2.2  abc123"
+   echo "If no password is given then one is generated" 
+   echo
+   exit
+fi
+
+FILEPATH=/etc/ipsec.d
+CONNID=$1
+LEFTPUBIP=$2
+RIGHTPUBIP=$3
+CONFIG=$FILEPATH/$CONNID.conf
+SECRETS="$FILEPATH/$CONNID.secrets"
+PSK=$4
+
+if [ ! -e $CONFIG ]
+then
+	echo "ConnID '$CONNID' doesn't exist"
+	exit 1
+fi
+
+if [  "x$4" = "x" ]
+then
+	PSK=$(echo `</dev/urandom tr -dc 'A-Za-z0-9-!@#$%^&*()_+{}|:<>?' |head -c24`)
+fi
+
+echo "$RIGHTPUBIP $LEFTPUBIP: \"$PASSWD\"" > $CONNFILE
+
+iptables -I OUTBOUND_VPN_PEERS -d $RIGHTPUBIP -j ACCEPT
+iptables -I INBOUND_VPN_PEERS -s $RIGHTPUBIP -j ACCEPT
+
+ipsec secrets
+
+
+exit 0

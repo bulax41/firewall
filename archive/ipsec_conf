@@ -1,0 +1,12 @@
+conn template 
+   authby=secret
+   auto=add
+   left=
+   leftsubnet=
+   leftid=
+   right=
+   rightsubnet=
+   rightid=
+   ike=3des-md5
+   esp=3des-md5,3des-sha1
+   pfs=yes

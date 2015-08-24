@@ -1,0 +1,47 @@
+#!/bin/bash
+
+LOGFILE=/var/log/fwchangelog 
+COMMAND=mkipsec-config
+log() {
+   message="$@"
+   echo "$(date +%c) $COMMAND $message">>$LOGFILE
+   logger -t $COMMAND "$message"
+}
+
+NARGS=$(echo $@|wc -w)
+if [ $NARGS -ne 1 ]; then
+   echo "Incorrect Args"
+   echo
+   echo "Usage: mkipsec-config 'ConnID'"
+   echo "Example: mkipsec-config bar01"
+   echo 
+   exit
+fi
+
+FILEPATH=/etc/ipsec.d
+CONNID=$1
+CONNPATH="$FILEPATH/$CONNID.conf"
+
+ls $FILEPATH|grep $CONNID\.conf > /dev/null 2>&1
+if [ $? -eq 0 ]; then 
+   echo "WARNING: A file named $CONNID.conf already exists"
+   echo
+   exit
+fi
+
+echo "conn" >> $CONNPATH
+echo "   authby=secret" >> $CONNPATH
+echo "   auto=add" >> $CONNPATH
+echo "   left=" >> $CONNPATH
+echo "   leftsubnet=" >> $CONNPATH
+echo "   leftid=" >> $CONNPATH
+echo "   right=" >> $CONNPATH
+echo "   rightsubnet=" >> $CONNPATH
+echo "   rightid=" >> $CONNPATH
+echo "   ike=3des-md5" >> $CONNPATH
+echo "   esp=3des-md5,3des-sha1" >> $CONNPATH
+echo "   pfs=yes" >> $CONNPATH
+
+log "Created base config file: $CONNPATH"
+
+exit

@@ -1,0 +1,31 @@
+#!/bin/bash
+
+LOGFILE=/var/log/fwchangelog 
+log() {
+   message="$@"
+   echo "$(date +%c) $message">>$LOGFILE
+   logger -t mkfw-backup "$message"
+}
+
+DATE=`date +%y%m%d`
+TIME=`date +%H%M%S`
+NAME=`hostname`
+LIST="/etc/network/interfaces /etc/hosts /etc/quagga/zebra.conf /etc/quagga/ospfd.conf /etc/quagga/ripd.conf /etc/network/iptables /root/scripts/config/tc-config /etc/network/iptables_save"
+
+#echo "$DATE-$TIME-$NAME-bkup.tar.gz "$LIST""
+
+echo "Saving iptables files"
+log service iptables save > /dev/null 2>&1
+echo
+echo "Saving Quagga files"
+log "Saving Quagga files"
+vtysh<<EEND 
+copy run start
+EEND
+
+echo
+echo "Gathering files and backing them up"
+log tar -czf ~/scripts/backups/$DATE-$TIME-$NAME-bkup.tar.gz $LIST
+
+echo "Finished..."
+

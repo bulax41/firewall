@@ -1,0 +1,35 @@
+#!/bin/bash
+
+if [ "x$1" = "x" ]; then
+        echo
+        echo "Usage: lsfw 'IP'/all "
+        echo "Example: lsfw 172.16.3.150"
+	echo "Example: lsfw all"
+        echo
+        exit
+fi
+
+if [ "x$1" = "xall" ]; then
+	iptables -L -nv --line-numbers
+	exit
+fi
+
+IP=$1
+CHAININ=INBOUND-$1
+CHAINOUT=OUTBOUND-$1
+echo "PREROUTING TABLE"
+PREROUTE=$(iptables -t nat -L PREROUTING -nv --line-numbers | grep $1)
+if [ "x$PREROUTE" = "x" ]; then 
+	echo "No rule for $1 exists"
+else 
+	echo "$PREROUTE"
+fi
+echo "POSTROUTING TABLE"
+POSTROUTE=$(iptables -t nat -L POSTROUTING -nv --line-numbers | grep $1)
+if [ "x$POSTROUTE" = "x" ]; then
+	echo "No rule for $1 exists"
+else
+	echo "$POSTROUTE"
+fi
+iptables -L $CHAININ -nv --line-numbers
+iptables -L $CHAINOUT -nv --line-numbers

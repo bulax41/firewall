@@ -1,0 +1,26 @@
+#!/bin/bash
+OPENVPNDIR=/etc/openvpn/clients
+
+if [ "x$1" = "x" ]; then
+        echo
+        echo "Usage: mkfw-clientconfig CLIENTID route"
+        echo "Example: mkfw-clientconfig ROTCAP 172.18.16.0/24" 
+        echo
+        exit
+fi
+
+rm -f $OPENVPNDIR/$1
+echo "push \"comp-lzo yes\"" >> $OPENVPNDIR/$1
+
+ARGS=("$@")
+NARGS=$(echo $@ | wc -w)
+for((i=1; i<$NARGS; i++))
+do
+	NETMASK=$(ipcalc -bn ${ARGS[$i]} | awk '/^Netmask/ {print $2}')
+	IP=$(ipcalc -bn ${ARGS[$i]} | awk '/^Address/ {print $2}')
+	echo "push \"route $IP $NETMASK\"" >> $OPENVPNDIR/$1
+done
+
+
+
+

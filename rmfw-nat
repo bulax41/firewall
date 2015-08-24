@@ -1,0 +1,38 @@
+#!/bin/bash
+
+LOGFILE=/var/log/fwchangelog 
+COMMAND=rmfw-nat
+log() {
+   message="$@"
+   echo "$(date +%c) $COMMAND $message">>$LOGFILE
+   logger -t $COMMAND "$message"
+}
+
+if [ "x$1" = "x" ]; then
+        echo
+        echo "Usage: rmfw-nat 'IP Address'"
+        echo "Example: rmfw-nat 172.16.100.11"
+        echo
+        exit
+fi
+
+PIP=$1
+
+LINE=$(iptables -t nat -L PREROUTING -nv --line-numbers | awk "BEGIN {count=0} \$11 ~ /$PIP/ {print \$1-count;count++}")
+if [ "x$LINE" != "x" ]; then
+        for line in $LINE
+        do
+                iptables -t nat -D PREROUTING $line
+                log iptables -t nat -D PREROUTING $line
+        done
+fi
+
+LINE=$(iptables -t nat -L POSTROUTING -nv --line-numbers | awk "BEGIN {count=0} \$9 ~ /$PIP/ {print \$1-count;count++}")
+if [ "x$LINE" != "x" ]; then
+        for line in $LINE
+        do
+                iptables -t nat -D POSTROUTING $line
+                log iptables -t nat -D POSTROUTING $line
+        done
+fi
+

@@ -1,0 +1,68 @@
+#!/bin/bash
+
+LOGFILE=/var/log/fwchangelog 
+COMMAND=ipsec_policy
+log() {
+   message="$@"
+   echo "$(date +%c) $COMMAND $message">>$LOGFILE
+   logger -t $COMMAND "$message"
+}
+
+connection(){
+   log "Following changes made to $CONNPATH"
+   sed -i '/left=/ c\   left='$LEFTPUBIP'' ${CONNPATH}
+   log "left=$LEFTPUBIP"
+   sed -i '/leftsubnet=/ c\   leftsubnet='$LEFTSUBNET'\/'$LEFTSUBNETMASK'' ${CONNPATH}
+   log "leftsubnet=$LEFTSUBNET/$LEFTSUBNETMASK"
+   sed -i '/leftid=/ c\   leftid='$LEFTPUBIP'' ${CONNPATH}
+   log "leftid=$LEFTPUBIP"
+   sed -i '/right=/ c\   right='$RIGHTPUBIP'' ${CONNPATH}
+   log "right=$RIGHTPUBIP"
+   sed -i '/rightsubnet=/ c\   rightsubnet='$RIGHTSUBNET'\/'$RIGHTSUBNETMASK'' ${CONNPATH}
+   log "rightsubnet=$RIGHTSUBNET/$RIGHTSUBNETMASK"
+   sed -i '/rightid=/ c\   rightid='$RIGHTPUBIP'' ${CONNPATH} 
+   log "rightid=$RIGHTPUBIP"
+   log
+}
+
+NARGS=$(echo $@|wc -w)
+if [ $NARGS -le 4 ]; then
+   echo "Insufficient Args"
+   echo
+   echo "Usage: ipsec-policy 'ConnID' 'Left Public IP' 'Left Subnet' Right Public IP' 'Right Subnet'"
+   echo "Example: ipsec-policy foo01 1.1.1.1 3.3.3.0/24 2.2.2.2 4.4.4.0/24"
+   echo 
+   exit
+fi
+
+FILEPATH=/etc/ipsec.d
+CONNID=$1
+LEFTPUBIP=$2
+RIGHTPUBIP=$4
+LEFTSUBNET=$(echo $3 | cut -d "/" -f 1)
+LEFTSUBNETMASK=$(echo $3 | cut -d "/" -f 2)
+RIGHTSUBNET=$(echo $5 | cut -d "/" -f 1)
+RIGHTSUBNETMASK=$(echo $5 | cut -d "/" -f 2)
+
+if [[ $LEFTSUBNETMASK -lt 0 || $LEFTSUBNETMASK -gt 32 ]]; then
+   echo "WARNING: The leftsubnet mask should be between 0-32 ($LEFTSUBNETMASK)"
+   exit
+fi
+
+if [[ $RIGHTSUBNETMASK -lt 0 || $RIGHTSUBNETMASK -gt 32 ]]; then
+   echo "WARNING: The rightsubnet mask should be between 0-32 ($RIGHTSUBNETMASK)"
+   exit
+fi
+
+CONNPATH="$FILEPATH/$CONNID.conf"
+
+ls $CONNPATH > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+   connection 
+else
+   echo "WARNING: There is no $CONNID.conf file"
+   echo
+   exit
+fi
+
+exit

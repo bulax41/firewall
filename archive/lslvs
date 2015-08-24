@@ -1,0 +1,33 @@
+#!/bin/bash
+
+NARGS=$(echo $@ | wc -w)
+if [ $NARGS -ne 1 ]; then
+   echo "Insufficient Arguments"
+   echo
+   echo "Usage: lslvs (IP|IP:Port|all|connections)"
+   echo "Example: lslvs 1.1.1.1:80"
+   echo
+   exit
+fi
+
+if [ "x$1" = "xall" ]; then
+   ipvsadm -L -n --sort
+   exit
+elif [ "x$1" = "xconnections" ]; then
+   ipvsadm -L -n -c --sort
+elif [[ "$1" =~ ':' ]]; then
+   echo "Firewall-Mark Virtual Services"
+   echo
+   ipvsadm -L -n --sort -f $1
+   echo "------------------"
+   echo "UDP Virtual Services"
+   echo
+   ipvsadm -L -n --sort -u $1
+   echo "------------------"
+   echo "TCP Virtual Services"
+   echo
+   ipvsadm -l -n --sort -t $1
+   exit
+else
+   ipvsadm -L -n |grep $1
+fi

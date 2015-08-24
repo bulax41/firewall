@@ -1,0 +1,21 @@
+#!/bin/bash
+
+if [ "x$1" = "x" ]; then
+        echo
+        echo "Usage: mkvpn-user username md5(password)"
+        echo
+        exit
+fi
+
+
+mysql openvpn <<END
+delete from users where username='$1';
+END
+
+mysql openvpn <<END
+insert into users (username,password) values ('$1','$2');
+END
+
+
+
+

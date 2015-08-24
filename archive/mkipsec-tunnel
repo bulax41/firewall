@@ -1,0 +1,70 @@
+#!/bin/bash
+
+LOGFILE=/var/log/fwchangelog 
+COMMAND=mkipsec-tunnel
+log() {
+   message="$@"
+   echo "$(date +%c) $COMMAND $message">>$LOGFILE
+   logger -t $COMMAND "$message"
+}
+
+NARGS=$(echo $@|wc -w)
+if [ $NARGS -le 4 ]; then
+   echo "Insufficient Args"
+   echo
+   echo "Usage: mkipsec-tunnel 'ConnID' 'Left Public IP' 'Left Subnet' 'Right Public IP' 'Right Subnet'"
+   echo "Example: mkipsec-tunnel bar 1.1.1.1 3.3.3.0/24 2.2.2.2 4.4.4.0/24"
+   echo 
+   exit
+fi
+
+FILEPATH=/etc/ipsec.d
+CONNID=$1
+LEFTPUBIP=$2
+LEFTSUBNET=$3
+RIGHTPUBIP=$4
+RIGHTSUBNET=$5
+NUM=$(ls $FILEPATH|grep ''$CONNID'.*conf'|tail -1|cut -d "." -f 1|sed -e 's/'$CONNID'//g')
+
+if [ "$NUM" = "" ]; then
+   NUM="01"
+   CONNID=$CONNID$NUM
+elif [[ $NUM -gt 1 || $NUM -lt 10 ]]; then 
+   NUM=$(echo $NUM |sed -e 's/0//g')
+   NUM=$(($NUM+1))
+   CONNID=$CONNID"0"$NUM
+else 
+   NUM=$(($NUM+1))
+   CONNID=$CONNID$NUM
+fi
+
+CONNPATH="$FILEPATH/$CONNID.conf"
+
+./mkipsec-config $CONNID 
+sed -i '/conn/ c\conn '$CONNID'' $CONNPATH
+
+./ipsec_policy $CONNID $LEFTPUBIP $LEFTSUBNET $RIGHTPUBIP $RIGHTSUBNET
+log ./ipsec_policy $CONNID $LEFTPUBIP $LEFTSUBNET $RIGHTPUBIP $RIGHTSUBNET
+./ipsec_peer $CONNID $LEFTPUBIP $RIGHTPUBIP
+log ./ipsec_peer $CONNID $LEFTPUBIP $RIGHTPUBIP
+
+./ipsec_control $CONNID rereadsecrets
+log ./ipsec_control $CONNID rereadsecrets
+./ipsec_control $CONNID add
+log ./ipsec_control $CONNID add
+./ipsec_control $CONNID up
+log ./ipsec_control $CONNID up
+
+iptables -L IPSEC_PEERS -nv --line-numbers |grep $RIGHTPUBIP > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+   echo "WARNING: There is already a rule in the IPSEC_PEERS table for $RIGHTPUBIP"
+   log "WARNING: There is already a rule in the IPSEC_PEERS table for $RIGHTPUBIP"
+   exit
+fi
+
+iptables -A IPSEC_PEERS -s $RIGHTPUBIP/32 -j ACCEPT
+log "iptables -A IPSEC_PEERS -s $RIGHTPUBIP/32 -j ACCEPT"
+iptables -A IPSEC_PEERS -d $RIGHTPUBIP/32 -j ACCEPT
+log "iptables -A IPSEC_PEERS -d $RIGHTPUBIP/32 -j ACCEPT"
+
+exit

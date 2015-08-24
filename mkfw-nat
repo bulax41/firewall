@@ -1,0 +1,39 @@
+#!/bin/bash
+
+LOGFILE=/var/log/fwchangelog 
+COMMAND=mkfw-nat
+log() {
+   message="$@"
+   echo "$(date +%c) $COMMAND $message">>$LOGFILE
+   logger -t $COMMAND "$message"
+}
+
+if [ "x$1" = "x" -o "x$2" = "x" -o "x$3" = "x" ]; then
+        echo
+        echo "Usage: mkfw-nat 'Private IP Address' 'Public IP Address'  (NAT|PAT)"
+        echo "Example: mkfw-nat 172.16.100.11 64.191.236.111 PAT"
+        echo
+        exit
+fi
+
+CHECK=$(iptables -t nat -L POSTROUTING -nv | awk -v pip=$1 -v pub=$2 '$4==pip || $6=="to:"pub {print 1}')
+if [ "x$CHECK" = "x" ]; then
+	iptables -t nat -A POSTROUTING -s $1 -j SNAT --to-source $2
+	log iptables -t nat -A POSTROUTING -s $1 -j SNAT --to-source $2
+fi
+
+if [ "x$3" = "xNAT" ]; then
+
+	CHECK=$(iptables -t nat -L PREROUTING -nv | awk -v pip=$1 -v pub=$2 '$6=="to:"pip || $5==pub {print 1}')
+	if [ "x$CHECK" = "x" ]; then
+       	 iptables -t nat -A PREROUTING -d $2 -j DNAT --to-destination $1
+       	 log iptables -t nat -A PREROUTING -d $2 -j DNAT --to-destination $1
+	fi
+
+fi
+
+
+
+
+
+

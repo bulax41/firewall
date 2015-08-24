@@ -1,0 +1,51 @@
+#!/bin/bash
+
+LOGFILE=/var/log/fwchangelog 
+COMMAND=rmlvs-server
+log() {
+   message="$@"
+   echo "$(date +%c) $COMMAND $message">>$LOGFILE
+   logger -t $COMMAND "$message"
+}
+
+NARGS=$(echo $@ | wc -w)
+if [ $NARGS -le 2 ]; then
+   echo "Insufficient Arguments"
+   echo
+   echo "Usage: rmlvs-service (tcp|udp) 'Virtual IP:Port' 'Real Server IP:Port"
+   echo "Example: rmlvs-service tcp 192.168.0.1:80 192.168.1.1:80"
+   echo
+   exit
+fi
+
+
+if [ "x$1" != "xtcp" -a "x$1" != "xudp" ]; then
+   echo "Arg1: tcp or udp ($1)"
+   echo
+   echo "Usage: rmlvs-service (tcp|udp) 'Virtual IP:Port' 'Real Server IP:Port"
+   echo "Example: rmlvs-service tcp 192.168.0.1:80 192.168.1.1:80"
+   echo
+   exit
+fi
+
+REALIP=$(echo $3|cut -d ":" -f 1)
+VIRTIP=$(echo $2|cut -d ":" -f 1)
+
+if [ $1 = "tcp" ]; then
+   PROTO="-t"
+elif [ $1 = "udp" ]; then
+   PROTO="-u" 
+else
+   exit
+fi
+
+ipvsadm -L -n --sort |grep $REALIP |grep Masq > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+   ipvsadm -d $PROTO $2 -r $3
+   log ipvsadm -d $PROTO $2 -r $3
+else 
+   echo "WARNING: The Real Server $3 does not exist on this Virtual Service"
+   exit
+fi
+   
+exit

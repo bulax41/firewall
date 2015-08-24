@@ -1,0 +1,72 @@
+#!/bin/bash
+
+LOGFILE=/var/log/fwchangelog 
+COMMAND=ipsec_control
+log() {
+   message="$@"
+   echo "$(date +%c) $COMMAND $message">>$LOGFILE
+   logger -t $COMMAND "$message"
+}
+
+NARGS=$(echo $@|wc -w)
+if [ $NARGS -ne 2 ]; then
+   echo "Insufficient Args"
+   echo
+   echo "Usage: ipsec_control 'ConnID' (up|down|bounce|reload|status|add|delete|rereadsecrets)"
+   echo "Example: ipsec_control foo01 bounce"
+   echo 
+   exit
+fi
+
+FILEPATH=/etc/ipsec.d
+CONNID=$1
+OPERATION=$2
+
+ls $FILEPATH |grep $CONNID\.conf > /dev/null 2>&1
+if [ $? -ne 0 ]; then 
+   echo "WARNING: There is no tunnel for $CONNID"
+   echo "Make sure the tunnel exists with lsipsec"
+   exit
+fi
+
+if [ "x$OPERATION" = "xup" ]; then
+   ipsec auto --up $CONNID
+   log "ipsec auto --up $CONNID"
+   exit
+elif [ "x$OPERATION" = "xdown" ]; then
+   ipsec auto --down $CONNID
+   log "ipsec auto --down $CONNID"
+   exit
+elif [ "x$OPERATION" = "xbounce" ]; then
+   ipsec auto --down $CONNID
+   log "ipsec auto --down $CONNID"
+   ipsec auto --up $CONNID
+   log "ipsec auto --up $CONNID"
+   exit
+elif [ "x$OPERATION" = "xreload" ]; then
+   ipsec auto --rereadsecrets
+   log "ipsec auto --rereadsecrets"
+   ipsec auto --replace $CONNID
+   log "ipsec auto --replace $CONNID"
+   exit
+elif [ "x$OPERATION" = "xstatus" ]; then
+   ipsec auto --status
+   exit
+elif [ "x$OPERATION" = "xadd" ]; then
+   ipsec auto --add $CONNID
+   log "ipsec auto --add $CONNID"
+   exit
+elif [ "x$OPERATION" = "xdelete" ]; then
+   ipsec auto --delete $CONNID
+   log "ipsec auto --delete $CONNID"
+   exit
+elif [ "x$OPERATION" = "xrereadsecrets" ]; then
+   ipsec auto --delete $CONNID
+   log "ipsec auto --rereadsecrets $CONNID"
+   exit
+else
+   echo "WARNING: Invalid Option ($OPERATION)"
+   exit
+fi
+
+exit

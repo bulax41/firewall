@@ -1,0 +1,55 @@
+#!/bin/bash
+
+LOGFILE=/var/log/fwchangelog 
+COMMAND=rmfw-intf
+log() {
+   message="$@"
+   echo "$(date +%c) $COMMAND $message">>$LOGFILE
+   logger -t $COMMAND "$message"
+}
+
+if [ "x$1" = "x" ]; then
+	echo
+	echo "Usage: rmfw-intf 'ETH_num'"
+	echo "Example: rmfw-intf eth2.100"
+	echo
+	exit
+fi
+
+CHAIN_NAME="FORWARD"
+INT=$(echo $1 |tr [:upper:] [:lower:])
+
+
+LINE=$(iptables -L $CHAIN_NAME -nv --line-numbers |awk "\$8 ~ /$INT/ {print \$1}")
+if [ "x$LINE" != "x" ]; then
+	iptables -D $CHAIN_NAME $LINE
+	log iptables -D $CHAIN_NAME $LINE
+fi
+
+# NAT Rule
+LINENAT=$(iptables -t nat -L POSTROUTING -nv --line-numbers |awk "\$8 ~ /^$1\$/ {print \$1}")
+if [ "x$LINENAT" != "x" ]; then
+        iptables -t nat -D POSTROUTING $LINENAT
+        log iptables -t nat -D POSTROUTING $LINENAT
+
+fi
+
+
+#ifdown $INT
+#log ifdown $INT
+
+vtysh <<END
+conf term
+int $INT
+no int $INT
+int $INT
+end
+copy run start
+END
+
+log "Removed interface $INT information from quagga and recreated empty interface."
+
+#rm -f /etc/sysconfig/network-scripts/ifcfg-$INT
+#log rm -f /etc/sysconfig/network-scripts/ifcfg-$INT
+
+

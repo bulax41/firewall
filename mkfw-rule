@@ -1,0 +1,67 @@
+#!/bin/bash
+
+LOGFILE=/var/log/fwchangelog 
+COMMAND=mkfw-rule
+log() {
+   message="$@"
+   echo "$(date +%c) $COMMAND $message">>$LOGFILE
+   logger -t $COMMAND "$message"
+}
+
+NARGS=$(echo $@ | wc -w)
+if [ $NARGS -le 3 ]; then
+	echo "Insufficient Args"
+	echo
+	echo "Usage: mkfw-rule (deny|accept) (in|out) 'IP Address' (iptables args)"
+	echo "Example: mkfw-rule accept in 172.16.3.151 -p tcp --dport 80"
+	echo
+        exit
+fi
+
+if [ "x$1" != "xdeny" -a "x$1" != "xaccept" ]; then
+        echo "Arg 1: deny or accept ($1) "
+	echo
+        echo "Usage: mkfw-rule (deny|accept) (in|out) 'IP Address' (iptables args)"
+        echo "Example: mkfw-rule accept in 172.16.3.151 -p tcp --dport 80"
+        echo
+        exit
+fi
+
+if [ "x$2" != "xin" -a "x$2" != "xout" ]; then
+        echo "Arg 2: in or out ($2)"
+        echo
+        echo "Usage: mkfw-rule (deny|accept) (in|out) 'IP Address' (iptables args)"
+        echo "Example: mkfw-rule accept in 172.16.3.151 -p tcp --dport 80"
+        echo
+        exit
+fi
+
+if [ $2 = "in" ]; then
+	CHAIN="INBOUND-$3"
+else
+	CHAIN="OUTBOUND-$3"
+fi
+
+iptables -L $CHAIN -nv > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+	echo 
+	echo "No IP Rule for $CHAIN"
+	echo "Check that this IP has been defined with mkfw-ip using lsfw $3"
+	echo
+	exit
+fi
+
+if [ $1 = "deny" ]; then
+        JUMP="DROPnLOG"
+else
+        JUMP="ACCEPT"
+fi
+
+IPTABLESARGS=$(echo $@ | cut -d " " -f 4-)
+
+LNUM=$(iptables -L $CHAIN -nv --line-numbers | tail -1 | awk '{print $1}')
+iptables -I $CHAIN $LNUM -j $JUMP $IPTABLESARGS
+log iptables -I $CHAIN $LNUM -j $JUMP $IPTABLESARGS
+
+
+
