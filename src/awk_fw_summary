@@ -62,13 +62,14 @@ default:
 }
 
 END {
-	printf("Total Sessions: %s, TCP=%s, UDP=%s, ICMP=%s\n",NR,tcp,udp,icmp)
-	printf("ESTABLISHED: %s\n",state_e);
-	printf("TIME_WAIT  : %s\n",state_tw);	
-        printf("CLOSED     : %s\n",state_c); 
-        printf("CLOSE_WAIT : %s\n",state_cw); 
-        printf("SYN_SENT   : %s\n",state_ss); 
-        printf("SYN_RECV   : %s\n",state_sr); 
-        printf("LAST_ACK   : %s\n",state_la); 
+	printf("Total Sessions: %s, (TCP=%s, UDP=%s, ICMP=%s)\n",NR,tcp,udp,icmp)
+	printf("TCP Sessions:\n")
+	printf("\tESTABLISHED: %s\n",state_e);
+	printf("\tTIME_WAIT  : %s\n",state_tw);	
+        printf("\tCLOSED     : %s\n",state_c); 
+        printf("\tCLOSE_WAIT : %s\n",state_cw); 
+        printf("\tSYN_SENT   : %s\n",state_ss); 
+        printf("\tSYN_RECV   : %s\n",state_sr); 
+        printf("\tLAST_ACK   : %s\n",state_la); 
 }
 

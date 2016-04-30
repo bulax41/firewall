@@ -10,17 +10,17 @@ log() {
 
 NARGS=$(echo $@ | wc -w)
 if [ $NARGS -le 3 ]; then
-	echo "Insufficient Args"
-	echo
-	echo "Usage: mkfw-rule (deny|accept) (in|out) 'IP Address' (iptables args)"
-	echo "Example: mkfw-rule accept in 172.16.3.151 -p tcp --dport 80"
-	echo
+        echo "Insufficient Args"
+        echo
+        echo "Usage: mkfw-rule (deny|accept) (in|out) 'IP Address' (iptables args)"
+        echo "Example: mkfw-rule accept in 172.16.3.151 -p tcp --dport 80"
+        echo
         exit
 fi
 
 if [ "x$1" != "xdeny" -a "x$1" != "xaccept" ]; then
         echo "Arg 1: deny or accept ($1) "
-	echo
+        echo
         echo "Usage: mkfw-rule (deny|accept) (in|out) 'IP Address' (iptables args)"
         echo "Example: mkfw-rule accept in 172.16.3.151 -p tcp --dport 80"
         echo
@@ -36,19 +36,28 @@ if [ "x$2" != "xin" -a "x$2" != "xout" ]; then
         exit
 fi
 
+IP=$3
+if [ $3 = "all" ]; then
+        IP=$(iptables -L OUTBOUND -nv | awk '{print $8}' | grep '^[0-9]')
+fi
+
+for i in $IP
+do
+
+
 if [ $2 = "in" ]; then
-	CHAIN="INBOUND-$3"
+        CHAIN="INBOUND-$i"
 else
-	CHAIN="OUTBOUND-$3"
+        CHAIN="OUTBOUND-$i"
 fi
 
 iptables -L $CHAIN -nv > /dev/null 2>&1
 if [ $? -ne 0 ]; then
-	echo 
-	echo "No IP Rule for $CHAIN"
-	echo "Check that this IP has been defined with mkfw-ip using lsfw $3"
-	echo
-	exit
+        echo 
+        echo "No IP Rule for $CHAIN"
+        echo "Check that this IP has been defined with mkfw-ip using lsfw $i"
+        echo
+        exit
 fi
 
 if [ $1 = "deny" ]; then
@@ -63,5 +72,5 @@ LNUM=$(iptables -L $CHAIN -nv --line-numbers | tail -1 | awk '{print $1}')
 iptables -I $CHAIN $LNUM -j $JUMP $IPTABLESARGS
 log iptables -I $CHAIN $LNUM -j $JUMP $IPTABLESARGS
 
-
+done
 

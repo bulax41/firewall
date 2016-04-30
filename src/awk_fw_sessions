@@ -13,15 +13,23 @@ BEGIN {
 		if($3=="tcp") {
 			flow=splitname($7)
 		}
-	}
-	else {
+		sessions[flow][NR]=$0
+	} else if (direction=="both") {
+		if($3=="tcp") {
+			sessions[splitname($7)][NR]=$0
+			sessions[splitname($8)][NR]=$0
+		} else {
+                       sessions[splitname($6)][NR]=$0
+                        sessions[splitname($7)][NR]=$0
+		}
+	} else {
 		flow=splitname($7);
                 if($3=="tcp") {
                         flow=splitname($8)
                 }
+		sessions[flow][NR]=$0
 	}
 
-	sessions[flow][NR]=$0
 
 }
 
