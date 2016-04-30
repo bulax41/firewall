@@ -1,0 +1,38 @@
+#!/bin/bash
+
+NARGS=$(echo $@ | wc -w)
+
+usage() {
+	echo
+	echo "Usage: "
+	echo "./lsfw-sessions {option}"
+	echo "Options: "
+	echo "	./lsfw-sessions dest"
+	echo "	./lsfw-sessions src"
+	echo "  ./lsfw-sessions both"
+	echo
+}
+
+if [ $NARGS -ge 2 ]; then
+	usage
+	exit
+elif [ $NARGS -eq 0 ]; then
+	awk -f  src/awk_fw_summary /proc/net/nf_conntrack
+elif [ $NARGS -eq 1 ]; then
+	case $1 in
+	dest)
+		awk -v "direction=dest" -f src/awk_fw_sessions /proc/net/nf_conntrack
+		;;
+	src)
+		awk -v direction=src -f src/awk_fw_sessions /proc/net/nf_conntrack
+		;;
+	both)
+		awk -v direction=both -f src/awk_fw_sessions /proc/net/nf_conntrack
+                ;;
+	*)
+		usage
+		exit
+		;;
+	esac
+fi
+

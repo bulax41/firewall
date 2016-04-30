@@ -1,0 +1,45 @@
+function splitname(str) {
+	split(str,a,"=")
+	return a[2]
+}
+
+
+BEGIN {
+}
+
+{
+	if(direction=="src") {
+		flow=splitname($6)
+		if($3=="tcp") {
+			flow=splitname($7)
+		}
+	}
+	else {
+		flow=splitname($7);
+                if($3=="tcp") {
+                        flow=splitname($8)
+                }
+	}
+
+	sessions[flow][NR]=$0
+
+}
+
+END {
+	for (ip in sessions)
+		count[ip]=length(sessions[ip])
+ 	n = asort(count,counta)
+	
+	last_i=0
+	for(i=1;i<n;i++) {	
+		if(last_i<counta[i]) {
+			for(ip in count) {
+				if(count[ip]==counta[i]) {
+					printf("%15s: %s\n",ip,counta[i]) 
+				}
+			}
+			last_i=counta[i]
+		}
+	}
+}
+

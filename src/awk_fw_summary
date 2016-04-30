@@ -1,0 +1,74 @@
+
+BEGIN {
+	udp=0
+	tcp=0
+	icmp=0
+	//TCP States
+	state_e=0
+	state_tw=0
+	state_c=0
+	state_cw=0
+	state_ss=0
+	state_sr=0
+	state_la=0
+	state_fw=0
+}
+
+{
+switch ($3) {
+
+case "tcp":
+	tcp=tcp+1
+	switch($6) {
+		case "ESTABLISHED" : 
+			state_e=state_e+1;
+			break;
+		case "TIME_WAIT" : 
+			state_tw=state_tw+1;
+			break;
+		case "CLOSE" :
+                        state_c=state_c+1;
+                        break;
+		case "CLOSE_WAIT" :
+                        state_cw=state_cw+1;
+                        break;
+                case "SYN_SENT" :
+                        state_ss=state_ss+1;
+                        break;
+                case "SYN_RECV" :
+                        state_sr=state_sr+1;
+                        break;
+                case "LAST_ACK" :
+                        state_la=state_la+1;
+                        break;
+		case "FIN_WAIT" :
+			state_fw=state_fw+1;
+			break;
+		default:
+			print $0;
+			break;
+	}
+	break;
+case "udp":
+	udp=udp+1
+	break;
+case "icmp":
+	icmp=icmp+1
+	break;
+default:
+	print $0;
+	break;
+}
+}
+
+END {
+	printf("Total Sessions: %s, TCP=%s, UDP=%s, ICMP=%s\n",NR,tcp,udp,icmp)
+	printf("ESTABLISHED: %s\n",state_e);
+	printf("TIME_WAIT  : %s\n",state_tw);	
+        printf("CLOSED     : %s\n",state_c); 
+        printf("CLOSE_WAIT : %s\n",state_cw); 
+        printf("SYN_SENT   : %s\n",state_ss); 
+        printf("SYN_RECV   : %s\n",state_sr); 
+        printf("LAST_ACK   : %s\n",state_la); 
+}
+

@@ -31,10 +31,6 @@ else
 	iptables -A $CHAIN_IP_IN -m state --state RELATED -j ACCEPT
 	iptables -A $CHAIN_IP_IN -m state --state INVALID -j DROPnLOG
 	iptables -A $CHAIN_IP_IN -p icmp --icmp-type echo-request -j ACCEPT
-	iptables -A $CHAIN_IP_IN -i eth1 -s 172.17.1.0/24 -j ACCEPT
-        iptables -A $CHAIN_IP_IN -i eth1 -s 172.17.2.0/24 -j ACCEPT
-        iptables -A $CHAIN_IP_IN -s 64.191.236.0/24 -p tcp --dport 9998 -j ACCEPT
-        iptables -A $CHAIN_IP_IN -s 208.78.36.0/22 -p tcp --dport 9998 -j ACCEPT
 	iptables -A $CHAIN_IP_IN -j DROPnLOG
 fi
 iptables -L $CHAIN_IP_OUT > /dev/null 2>&1
@@ -46,12 +42,6 @@ else
 	iptables -A $CHAIN_IP_OUT -m state --state ESTABLISHED -j ACCEPT
 	iptables -A $CHAIN_IP_OUT -m state --state INVALID -j DROPnLOG
         iptables -A $CHAIN_IP_OUT -p icmp --icmp-type echo-request -j ACCEPT
-	iptables -A $CHAIN_IP_OUT -d 64.191.236.35/32 -p tcp --dport 3128 -j ACCEPT
-	iptables -A $CHAIN_IP_OUT -d 64.191.236.17/32 -p udp --dport 53 -j ACCEPT
-	iptables -A $CHAIN_IP_OUT -d 64.191.236.18/32 -p udp --dport 53 -j ACCEPT
-	iptables -A $CHAIN_IP_OUT -d 64.191.236.17/32 -p tcp --dport 53 -j ACCEPT
-	iptables -A $CHAIN_IP_OUT -d 64.191.236.18/32 -p tcp --dport 53 -j ACCEPT
-	iptables -A $CHAIN_IP_OUT -p tcp --dport 123 -j ACCEPT
 	iptables -A $CHAIN_IP_OUT -j DROPnLOG
 fi
 
