@@ -18,51 +18,45 @@ COMMIT
 :OUTPUT DROP [0:0]
 :DROPnLOG - [0:0]
 :INBOUND - [0:0]
-:IPSEC_PEERS - [0:0]
+:VPN_PEERS - [0:0]
+:MANAGEMENT - [0:0]
 :OUTBOUND - [0:0]
 :OUTPUT_ETH0 - [0:0]
 :OUTPUT_ETH1 - [0:0]
 :OUTPUT_ETH2 - [0:0]
 :OUTPUT_GRE - [0:0]
--A INPUT -p udp -m udp --dport 1194 -j ACCEPT
 -A INPUT -m state --state RELATED -j ACCEPT
 -A INPUT -m state --state ESTABLISHED -j ACCEPT
 -A INPUT -m state --state INVALID -j DROPnLOG
 -A INPUT -i lo -j ACCEPT
--A INPUT -s 64.191.236.0/24 -d 224.0.0.9/32 -i eth1 -p udp -m udp --dport 520 -j ACCEPT
--A INPUT -p icmp -j ACCEPT
--A INPUT -i eth1 -p esp -j IPSEC_PEERS
--A INPUT -i eth1 -p udp -m udp --dport 500 -j IPSEC_PEERS
--A INPUT -i eth1 -p udp -m udp --dport 4500 -j IPSEC_PEERS
--A INPUT -i eth0 -j ACCEPT
+-A INPUT -p icmp -m limit --limit 10/s -j ACCEPT
+-A INPUT -p udp -m udp --dport 1194 -m limit --limit 5/s -j ACCEPT
+-A INPUT -p esp -j VPN_PEERS
+-A INPUT -p 47 -j VPN_PEERS 
+-A INPUT -p udp -m udp --dport 500 -j VPN_PEERS
+-A INPUT -p udp -m udp --dport 4500 -j VPN_PEERS
+-A INPUT -p udp --dport 161 -j MANAGEMENT
+-A INPUT -p tcp --dport 11122 -j MANAGEMENT
 -A INPUT -j DROPnLOG
--A FORWARD -o eth2 -j INBOUND
--A FORWARD -o eth1 -j OUTBOUND
--A FORWARD -o tun+ -m state --state RELATED,ESTABLISHED -j ACCEPT
+-A MANAGEMENT -s 73.73.235.32 -j ACCEPT
 -A FORWARD -j DROPnLOG
--A OUTPUT -m state --state RELATED -j ACCEPT
 -A OUTPUT -m state --state ESTABLISHED -j ACCEPT
+-A OUTPUT -m state --state RELATED -j ACCEPT
 -A OUTPUT -o lo -j ACCEPT
 -A OUTPUT -p icmp -j ACCEPT
--A OUTPUT -o eth0 -j OUTPUT_ETH0
--A OUTPUT -o eth1 -j OUTPUT_ETH1
--A OUTPUT -o eth2 -j OUTPUT_ETH2
--A OUTPUT -o gre+ -j OUTPUT_GRE
+-A OUTPUT -o gre+ -j ACCEPT
+-A OUTPUT -p tcp --dport 22 -j ACCEPT
+-A OUTPUT -p tcp --dport 11122 -j ACCEPT
+-A OUTPUT -p udp -m udp --dport 53 -j ACCEPT
+-A OUTPUT -p udp -m udp --dport 123 -j ACCEPT
+-A OUTPUT -p udp -m udp --dport 500 -j VPN_PEERS
+-A OUTPUT -p udp -m udp --dport 4500 -j VPN_PEERS
+-A OUTPUT -p esp -j VPN_PEERS
+-A OUTPUT -p 47 -j VPN_PEERS
 -A OUTPUT -j DROPnLOG
--A DROPnLOG -m limit --limit 10/sec -j LOG
--A DROPnLOG -j DROP
--A OUTPUT_ETH0 -p udp -m udp --dport 53 -j ACCEPT
--A OUTPUT_ETH0 -p tcp -m tcp --dport 2222 -j ACCEPT
--A OUTPUT_ETH0 -j DROPnLOG
--A OUTPUT_ETH1 -j ACCEPT
--A OUTPUT_ETH1 -d 224.0.0.9/32 -o eth1 -p udp -m udp --dport 520 -j ACCEPT
--A OUTPUT_ETH1 -p tcp -m tcp --dport 2222 -j ACCEPT
--A OUTPUT_ETH1 -p udp -m udp --dport 500 -j IPSEC_PEERS
--A OUTPUT_ETH1 -p udp -m udp --dport 4500 -j IPSEC_PEERS
--A OUTPUT_ETH1 -p esp -j IPSEC_PEERS
--A OUTPUT_ETH1 -p udp -m udp --dport 123 -j ACCEPT
--A OUTPUT_ETH1 -j DROPnLOG
--A OUTPUT_ETH2 -p tcp -m tcp --dport 2222 -j ACCEPT
--A OUTPUT_ETH2 -j DROPnLOG
--A OUTPUT_GRE -j DROPnLOG
+-A DROPnLOG -m addrtype --dst-type MULTICAST -j DROP
+-A DROPnLOG -m addrtype --dst-type BROADCAST -j DROP
+-A DROPnLOG -m recent --rcheck --seconds 30 --reap --hitcount 5 --name portscan --mask 255.255.255.255 --rsource -j DROP
+-A DROPnLOG -m limit --limit 5/sec -j LOG
+-A DROPnLOG -m recent --set --name portscan --mask 255.255.255.255 --rsource -j DROP
 COMMIT

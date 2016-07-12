@@ -1,75 +1,79 @@
 #!/bin/bash
+CHAIN_NAME="FORWARD"
+SYSCONFIG="/etc/sysconfig/network-scripts"
+
+usage () {
+        echo
+        echo "Usage: mkfw-intf 'IN/OUT/MGMT' 'interface' "
+        echo "Examples: "
+        echo "          > mkfw-intf in ens192 "
+        echo
+}
 
 
-if [ "x$1" = "x" -o "y$2" = "y" -o "x$3" = "x" -o "z$4" = "z" ]; then
+if [ "x$1" = "x" -o "y$2" = "y" ]; then
+	echo "Incorrect number of arguments"
 	echo
-	echo "Usage: mkfw-intf 'IN/OUT' 'interface' 'NAT/NONAT' 'IP'"
-	echo "Examples: "
-	echo "          > mkfw-intf in eth2.199 nat 172.16.199.11/24"
-	echo
+	usage
+	exit
+fi
+DIRECTION=$(echo $1 |tr [:lower:] [:upper:])
+INT=$(echo $2 |tr [:upper:] [:lower:])
+
+if [ $DIRECTION != "IN" -a $DIRECTION != "OUT" -a $DIRECTION != "MGMT" ]; then
+	echo "Incorrect first arguement"
+	usage
 	exit
 fi
 
-NAT=$(echo $3 |tr [:lower:] [:upper:])
-CHAIN_NAME="FORWARD"
-DIRECTION=$(echo $1 |tr [:lower:] [:upper:])
-INT=$(echo $2 |tr [:lower:] [:upper:])
-REDHATCONFIG="/etc/sysconfig/network-scripts"
-UBUNTUCONFIG="/etc/network/interfaces"
+notfound=0
+for i in $(awk '{if(NR>2) print $1}' /proc/net/dev)
+do
+	if [ "$i" == "$INT:" ]; then
+		notfound=1
+		break
+	fi
+done
+
+if [ $notfound == "0" ]; then
+	echo "Interface not found"
+	usage
+	exit
+fi
 
 
-############################
-#
-# Delete Rules For Interface
-#
-############################
-# FORWARD Rule
+# Delete Any Previous Rules For Interface
 LINE=$(iptables -L $CHAIN_NAME -nv --line-numbers |awk "\$8 ~ /^$2\$/ {print \$1}")
 if [ "x$LINE" != "x" ]; then
 	iptables -D $CHAIN_NAME $LINE
 fi
 
-# NAT Rule
-LINENAT=$(iptables -t nat -L POSTROUTING -nv --line-numbers |awk "\$8 ~ /^$2\$/ {print \$1}")
-if [ "x$LINENAT" != "x" ]; then
-        iptables -t nat -D POSTROUTING $LINENAT
+# Bring up interface on boot
+cat > $SYSCONFIG/ifcfg-$INT <<-ENDCAT
+TYPE=Ethernet
+BOOTPROTO=none
+DEVICE=$INT
+ONBOOT=yes
+ENDCAT
 
+
+forwarding=0
+# Insert iptables rule
+if [ $DIRECTION != "MGMT" ]; then
+	iptables -I $CHAIN_NAME -o $2 -j ${DIRECTION}BOUND
+	forwarding=1
 fi
 
 
-############################
-#
-# Add Interface if not present
-#
-############################
-if ! grep $2 $UBUNTUCONFIG; then
-	cat >> $UBUNTUCONFIG <<-ENDCAT
-	
-	auto $2
-	ENDCAT
-
-fi
-
-ifup $2
-
-vtysh <<END
-conf term
-int $2
-ip address $4
-end
-copy run start
+#set sysctl variable for forwarding not not. 
+cat > /etc/sysctl.d/$INT.conf <<END
+net.ipv4.conf.$INT.forwarding = $forwarding
+net.ipv4.conf.$INT.rp_filter = 0
 END
 
-############################
-#
-# Add Rules for Interface
-#
-############################
-iptables -I $CHAIN_NAME -o $2 -j ${DIRECTION}BOUND
-if [ $NAT = "NONAT" ]; then
-	iptables -t nat -I POSTROUTING -o $2 -j ACCEPT
-fi
+sysctl -w net.ipv4.conf.$INT.forwarding=$forwarding
+sysctl -w net.ipv4.conf.$INT.rp_filter=0
 
 
 
-
+service iptables save
