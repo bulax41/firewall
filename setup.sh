@@ -2,10 +2,9 @@
 
 
 # Packages
+yum clean all
 yum -y install epel-release
 yum -y install wireshark ntp strongswan openvpn iptables-services net-snmp net-tools quagga  sysstat traceroute telnet open-vm-tools
-
-
 
 # Sysctl variables
 echo >> /etc/sysctl.conf <<-END
@@ -28,7 +27,7 @@ systemctl disable irqbalance
 systemctl disable kdump
 systemctl disable NetworkManager
 systemctl disable postfix
-systemctl enable ntp
+systemctl enable ntpd
 systemctl enable strongswan
 systemctl enable openvpn@server
 systemctl enable iptables
