@@ -7,7 +7,7 @@ yum -y install epel-release
 yum -y install wireshark ntp strongswan openvpn iptables-services net-snmp net-tools quagga  sysstat traceroute telnet open-vm-tools
 
 # Sysctl variables
-echo >> /etc/sysctl.conf <<-END
+cat >> /etc/sysctl.conf <<-END
 
 net.ipv4.ip_forward = 1
 net.ipv4.conf.all.rp_filter = 0
@@ -44,7 +44,7 @@ cp config/iptables /etc/sysconfig/iptables
 # SE LINUX
 setsebool -P allow_zebra_write_config 1
 
-echo >> /etc/default/grub <<-END
+cat > /etc/default/grub <<-END
 GRUB_TIMEOUT=5
 GRUB_DISTRIBUTOR="$(sed 's, release .*$,,g' /etc/system-release)"
 GRUB_DEFAULT=saved
