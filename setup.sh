@@ -4,7 +4,7 @@
 # Packages
 yum clean all
 yum -y install epel-release
-yum -y install wireshark ntp strongswan openvpn iptables-services net-snmp net-tools quagga  sysstat traceroute telnet open-vm-tools policycoreutils-python
+yum -y install wireshark zip ntp strongswan openvpn easy-rsa iptables-services net-snmp net-tools quagga  sysstat traceroute telnet open-vm-tools policycoreutils-python
 
 # Sysctl variables
 cat >> /etc/sysctl.conf <<-END

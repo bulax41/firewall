@@ -27,17 +27,17 @@ COMMIT
 :OUTPUT_GRE - [0:0]
 -A INPUT -m state --state RELATED -j ACCEPT
 -A INPUT -m state --state ESTABLISHED -j ACCEPT
--A INPUT -m state --state INVALID -j DROPnLOG
+-A INPUT -m state --state INVALID -j DROP
 -A INPUT -i lo -j ACCEPT
 -A INPUT -p icmp -m limit --limit 10/s -j ACCEPT
 -A INPUT -p udp -m udp --dport 1194 -m limit --limit 5/s -j ACCEPT
 -A INPUT -p esp -j VPN_PEERS
--A INPUT -p 47 -j VPN_PEERS 
+-A INPUT -p 47 -j VPN_PEERS
 -A INPUT -p udp -m udp --dport 500 -j VPN_PEERS
 -A INPUT -p udp -m udp --dport 4500 -j VPN_PEERS
 -A INPUT -p udp --dport 161 -j MANAGEMENT
 -A INPUT -p tcp --dport 11122 -j MANAGEMENT
--A INPUT -j DROPnLOG
+-A INPUT -j DROP
 -A MANAGEMENT -s 73.73.235.32 -j ACCEPT
 -A FORWARD -j DROPnLOG
 -A OUTPUT -m state --state ESTABLISHED -j ACCEPT
