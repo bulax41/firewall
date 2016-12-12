@@ -23,7 +23,7 @@ END
 # services
 systemctl disable avahi-daemon
 systemctl disable firewalld
-systemctl disable irqbalance
+systemctl enable irqbalance
 systemctl disable kdump
 systemctl disable NetworkManager
 systemctl disable postfix
