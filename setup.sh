@@ -51,10 +51,4 @@ grub2-mkconfig -o /boot/grub2/grub.cfg
 
 
 # Cron backup of iptables daily
-cat > /etc/cron.daily/iptables_save <<END
-#!/bin/bash
-iptables-save > $PWD/backups/iptables.$(date +%Y%m%d)
-find $PWD/backups/ -mtime +30d -delete
-
-END
-chomd +x /etc/cron.daily/iptables_save
+ln -s backups/iptables-save.sh /etc/cron.daily/
