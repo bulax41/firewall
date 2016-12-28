@@ -5,7 +5,7 @@
 yum clean all
 yum -y install epel-release
 yum -y install wireshark zip ntp python2-pip strongswan openvpn easy-rsa iptables-services net-snmp net-tools quagga  sysstat traceroute telnet open-vm-tools policycoreutils-python
-pip install python-telegram-bot
+pip install python-telegram-bot --upgrade
 
 # Sysctl variables
 cat >> /etc/sysctl.conf <<-END
@@ -45,10 +45,10 @@ cp config/iptables /etc/sysconfig/iptables
 # SE LINUX
 setsebool -P allow_zebra_write_config 1
 
-cp /etc/default/grub /etc/default/grub.orig
+cp /etc/sysconfig/grub /etc/sysconfig/grub.orig
 awk '/GRUB_CMDLINE_LINUX/ {for(i = 1; i <= NF; i++) {if($i=="rhgb") continue; printf "%s ",$i }; printf "\n"; next} {print}' /etc/sysconfig/grub.orig > /etc/sysconfig/grub
 grub2-mkconfig -o /boot/grub2/grub.cfg
 
 
 # Cron backup of iptables daily
-ln -s backups/iptables-save.sh /etc/cron.daily/
+mv backups/iptables_save.sh /etc/cron.daily/

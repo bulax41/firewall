@@ -9,15 +9,15 @@ import re
 import json
 import socket
 import os
-
-
+import configparser
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 import logging
 
-telegram_token = "319507063:AAFI9Ca2x50NKTxBuxOn5TSHvdEI-bng0N4"
-savefile = "chatlist.json"
-user_token = "8c6d20cee7837fa7e6a55a254aa3ac53"
-admin_token = "79e36a012213b96a2248cefe01225f71"
+config = configparser.ConfigParser()
+config.read('bot.ini')
+savefile = config['FILES']['chats']
+user_token = config['TOKENS']['user']
+admin_token = config['TOKENS']['admin']
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -214,7 +214,7 @@ def main():
         pass
 
     # Create the EventHandler and pass it your bot's token.
-    updater = Updater(telegram_token)
+    updater = Updater(config['TOKENS']['bot_api'])
 
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
