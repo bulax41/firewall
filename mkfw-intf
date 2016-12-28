@@ -4,14 +4,14 @@ SYSCONFIG="/etc/sysconfig/network-scripts"
 
 usage () {
         echo
-        echo "Usage: mkfw-intf 'IN/OUT/MGMT' 'interface' "
+        echo "Usage: mkfw-intf 'IN/OUT/MGMT' 'interface' 'ip address' "
         echo "Examples: "
-        echo "          > mkfw-intf in ens192 "
+        echo "          > mkfw-intf in eth0 10.1.2.1/24 "
         echo
 }
 
 
-if [ "x$1" = "x" -o "y$2" = "y" ]; then
+if [ "x$1" = "x" -o "y$2" = "y" -o "z$3" = "z" ]; then
 	echo "Incorrect number of arguments"
 	echo
 	usage
@@ -62,10 +62,13 @@ forwarding=0
 if [ $DIRECTION != "MGMT" ]; then
 	iptables -I $CHAIN_NAME -o $2 -j ${DIRECTION}BOUND
 	forwarding=1
+else
+  LINE=$(iptables -L INPUT -nv --line-numbers | tail -1 | awk '{print $1}')
+  iptables -I INPUT $LINE -i $2 -j ACCEPT
 fi
 
 
-#set sysctl variable for forwarding not not. 
+#set sysctl variable for forwarding not not.
 cat > /etc/sysctl.d/$INT.conf <<END
 net.ipv4.conf.$INT.forwarding = $forwarding
 net.ipv4.conf.$INT.rp_filter = 0
@@ -73,6 +76,10 @@ END
 
 sysctl -w net.ipv4.conf.$INT.forwarding=$forwarding
 sysctl -w net.ipv4.conf.$INT.rp_filter=0
+
+
+## SET IP Address
+vtysh -c "conf term" -c "int $2" -c "ip address $3" -c "end" -c "copy run start"
 
 
 

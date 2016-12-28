@@ -1,6 +1,6 @@
 #!/bin/bash
 
-LOGFILE=/var/log/fwchangelog 
+LOGFILE=/var/log/fwchangelog
 COMMAND=mkfw-rule
 log() {
    message="$@"
@@ -38,39 +38,40 @@ fi
 
 IP=$3
 if [ $3 = "all" ]; then
-        IP=$(iptables -L OUTBOUND -nv | awk '{print $8}' | grep '^[0-9]')
+  IP=$(iptables -L OUTBOUND -nv | awk '{print $8}' | grep '^[0-9]')
+elif [ $3 = "default" ]; then
+  IP=$(echo $3 |tr [:lower:] [:upper:])
 fi
 
 for i in $IP
 do
 
 
-if [ $2 = "in" ]; then
+  if [ $2 = "in" ]; then
         CHAIN="INBOUND-$i"
-else
+  else
         CHAIN="OUTBOUND-$i"
-fi
+  fi
 
-iptables -L $CHAIN -nv > /dev/null 2>&1
-if [ $? -ne 0 ]; then
-        echo 
+  iptables -L $CHAIN -nv > /dev/null 2>&1
+  if [ $? -ne 0 ]; then
+        echo
         echo "No IP Rule for $CHAIN"
         echo "Check that this IP has been defined with mkfw-ip using lsfw $i"
         echo
         exit
-fi
+  fi
 
-if [ $1 = "deny" ]; then
-        JUMP="DROPnLOG"
-else
+  if [ $1 = "deny" ]; then
+        JUMP="DROP"
+  else
         JUMP="ACCEPT"
-fi
+  fi
 
-IPTABLESARGS=$(echo $@ | cut -d " " -f 4-)
+  IPTABLESARGS=$(echo $@ | cut -d " " -f 4-)
 
-LNUM=$(iptables -L $CHAIN -nv --line-numbers | tail -1 | awk '{print $1}')
-iptables -I $CHAIN $LNUM -j $JUMP $IPTABLESARGS
-log iptables -I $CHAIN $LNUM -j $JUMP $IPTABLESARGS
+  LNUM=$(iptables -L $CHAIN -nv --line-numbers | tail -1 | awk '{print $1}')
+  iptables -I $CHAIN $LNUM -j $JUMP $IPTABLESARGS
+  #log iptables -I $CHAIN $LNUM -j $JUMP $IPTABLESARGS
 
 done
-

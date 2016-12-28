@@ -3,7 +3,7 @@
 if [ "x$1" = "x" ]; then
         echo
         echo "Usage: mkfw-ip 'IP Address'"
-        echo "Example: mkfw-ip 172.16.100.11" 
+        echo "Example: mkfw-ip 172.16.100.11"
         echo
         exit
 fi
@@ -25,24 +25,24 @@ CHAIN_IP_OUT="OUTBOUND-$PIP"
 iptables -L $CHAIN_IP_IN > /dev/null 2>&1
 if [ $? -eq 0 ]; then
         echo "WARNING: $CHAIN_IP_IN already exists"
-else 
+else
 	iptables -N $CHAIN_IP_IN
 	iptables -A $CHAIN_IP_IN -m state --state ESTABLISHED -j ACCEPT
 	iptables -A $CHAIN_IP_IN -m state --state RELATED -j ACCEPT
 	iptables -A $CHAIN_IP_IN -m state --state INVALID -j DROPnLOG
 	iptables -A $CHAIN_IP_IN -p icmp --icmp-type echo-request -j ACCEPT
-	iptables -A $CHAIN_IP_IN -j DROPnLOG
+	iptables -A $CHAIN_IP_IN -j INBOUND-DEFAULT
 fi
 iptables -L $CHAIN_IP_OUT > /dev/null 2>&1
 if [ $? -eq 0 ]; then
         echo "WARNING: $CHAIN_IP_OUT already exists"
 else
-        iptables -N $CHAIN_IP_OUT
+  iptables -N $CHAIN_IP_OUT
 	iptables -A $CHAIN_IP_OUT -m state --state RELATED -j ACCEPT
 	iptables -A $CHAIN_IP_OUT -m state --state ESTABLISHED -j ACCEPT
 	iptables -A $CHAIN_IP_OUT -m state --state INVALID -j DROPnLOG
-        iptables -A $CHAIN_IP_OUT -p icmp --icmp-type echo-request -j ACCEPT
-	iptables -A $CHAIN_IP_OUT -j DROPnLOG
+  iptables -A $CHAIN_IP_OUT -p icmp --icmp-type echo-request -j ACCEPT
+	iptables -A $CHAIN_IP_OUT -j OUTBOUND-DEFAULT
 fi
 
 ###################################
@@ -55,12 +55,11 @@ iptables -L $CHAIN_ETH_IN -n | grep -q "^$CHAIN_IP_IN "
 if [ $? -eq 0 ]; then
         echo "WARNING: RULE $CHAIN_IP_IN already exists"
 else
-        iptables -A $CHAIN_ETH_IN -d $1 -j $CHAIN_IP_IN
+        iptables -I $CHAIN_ETH_IN -d $1 -j $CHAIN_IP_IN
 fi
 iptables -L $CHAIN_ETH_OUT -n | grep -q "^$CHAIN_IP_OUT "
 if [ $? -eq 0 ]; then
         echo "WARNING: RULE $CHAIN_IP_OUT already exists"
 else
-        iptables -A $CHAIN_ETH_OUT -s $1 -j $CHAIN_IP_OUT
+        iptables -I $CHAIN_ETH_OUT -s $1 -j $CHAIN_IP_OUT
 fi
-
