@@ -6,6 +6,7 @@ yum clean all
 yum -y install epel-release
 yum -y install wireshark zip ntp python2-pip strongswan openvpn easy-rsa iptables-services net-snmp net-tools quagga  sysstat traceroute telnet open-vm-tools policycoreutils-python
 pip install python-telegram-bot --upgrade
+pip install configparser --upgrade
 
 # Sysctl variables
 cat >> /etc/sysctl.conf <<-END
