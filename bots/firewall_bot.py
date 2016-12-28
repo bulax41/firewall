@@ -178,6 +178,7 @@ def add_ip(bot,update,args):
 
     # call thess
     os.chdir("/root/firewall")
+    output = ""
     try:
         output = subprocess.check_output(["./mkfw-ip",args[0]],stderr=subprocess.STDOUT)
         status="Sucess"
