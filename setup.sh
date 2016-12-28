@@ -45,16 +45,8 @@ cp config/iptables /etc/sysconfig/iptables
 # SE LINUX
 setsebool -P allow_zebra_write_config 1
 
-GRUB=$(awk '/GRUB_CMDLINE_LINUX/ {for (i in $0) {if($i == )}}'
-cat  > /etc/default/grub <<-END
-GRUB_TIMEOUT=5
-GRUB_DISTRIBUTOR="$(sed 's, release .*$,,g' /etc/system-release)"
-GRUB_DEFAULT=saved
-GRUB_DISABLE_SUBMENU=true
-GRUB_TERMINAL_OUTPUT="console"
-GRUB_CMDLINE_LINUX="rd.lvm.lv=centos/swap vconsole.font=latarcyrheb-sun16 rd.lvm.lv=centos/root crashkernel=auto  vconsole.keymap=us rhgb net.ifnames=0"
-GRUB_DISABLE_RECOVERY="true"
-END
+cp /etc/default/grub /etc/default/grub.orig
+awk '/GRUB_CMDLINE_LINUX/ {for(i = 1; i <= NF; i++) {if($i=="rhgb") continue; printf "%s ",$i }; printf "\n"; next} {print}' /etc/sysconfig/grub.orig > /etc/sysconfig/grub
 grub2-mkconfig -o /boot/grub2/grub.cfg
 
 
@@ -62,6 +54,7 @@ grub2-mkconfig -o /boot/grub2/grub.cfg
 cat > /etc/cron.daily/iptables_save <<END
 #!/bin/bash
 iptables-save > $PWD/backups/iptables.$(date +%Y%m%d)
+find $PWD/backups/ -mtime +30d -delete
 
 END
 chomd +x /etc/cron.daily/iptables_save
