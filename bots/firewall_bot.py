@@ -176,7 +176,7 @@ def add_ip(bot,update,args):
         update.message.reply_text("Invalid IP '%s'." % " ".join(args))
         return
 
-    # call the
+    # call thess
     os.chdir("/root/firewall")
     try:
         output = subprocess.check_output(["./mkfw-ip",args],stderr=subprocess.STDOUT)
