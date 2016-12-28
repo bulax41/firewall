@@ -224,6 +224,7 @@ def main():
     dp.add_handler(CommandHandler("blackhole", blackhole,pass_args=True))
     dp.add_handler(CommandHandler("who", who))
     dp.add_handler(CommandHandler("tokens", tokens))
+    dp.add_handler(CommandHandler("addip", add_ip,pass_args=True))
 
     dp.add_handler(MessageHandler(Filters.command,help))
     dp.add_handler(MessageHandler(Filters.text, help))
