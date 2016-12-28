@@ -182,9 +182,9 @@ def add_ip(bot,update,args):
     try:
         output = subprocess.check_output(["/root/firewall/mkfw-ip",args[0]],stderr=subprocess.STDOUT)
         status="Sucess"
-    except subprocess.CalledProcessError:
+    except subprocess.CalledProcessError as oops:
         status="Error"
-        output = subprocess.CalledProcessError.output
+        output = oops.output
 
     update.message.reply_text("%s: %s" % (status,output))
     return
