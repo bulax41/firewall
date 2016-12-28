@@ -170,7 +170,7 @@ def echo(bot, update):
 
 def add_ip(bot,update,args):
     try:
-        socket.inet_aton(addr)
+        socket.inet_aton(args[0])
 
     except socket.error:
         update.message.reply_text("Invalid IP ''%s'." % " ".join(args))
