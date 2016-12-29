@@ -47,7 +47,7 @@ cp config/iptables /etc/sysconfig/iptables
 setsebool -P allow_zebra_write_config 1
 
 cp /etc/sysconfig/grub /etc/sysconfig/grub.orig
-awk '/GRUB_CMDLINE_LINUX/ {for(i = 1; i <= NF; i++) {if($i=="rhgb") printf "net.ifnames=0"; printf "%s ",$i }; next} {print}' /etc/sysconfig/grub.orig > /etc/sysconfig/grub
+awk '/GRUB_CMDLINE_LINUX/ {for(i = 1; i <= NF; i++) {if($i=="rhgb") {printf "net.ifnames=0"; continue}; printf "%s ",$i;  }; next} {print}' /etc/sysconfig/grub.orig > /etc/sysconfig/grub
 grub2-mkconfig -o /boot/grub2/grub.cfg
 
 
