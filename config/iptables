@@ -50,6 +50,8 @@ COMMIT
 -A OUTPUT -o gre+ -j ACCEPT
 -A OUTPUT -p udp -m udp --dport 53 -j ACCEPT
 -A OUTPUT -p udp -m udp --dport 123 -j ACCEPT
+-A OUTPUT -p tcp -m tcp --dport 80 -j ACCEPT
+-A OUTPUT -p tcp -m tcp --dport 443 -j ACCEPT
 -A OUTPUT -p udp -m udp --dport 500 -j VPN_PEERS
 -A OUTPUT -p udp -m udp --dport 4500 -j VPN_PEERS
 -A OUTPUT -p esp -j VPN_PEERS
