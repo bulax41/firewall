@@ -47,9 +47,10 @@ cp config/iptables /etc/sysconfig/iptables
 setsebool -P allow_zebra_write_config 1
 
 cp /etc/sysconfig/grub /etc/sysconfig/grub.orig
-awk '/GRUB_CMDLINE_LINUX/ {for(i = 1; i <= NF; i++) {if($i=="rhgb") continue; printf "%s ",$i }; printf "\n"; next} {print}' /etc/sysconfig/grub.orig > /etc/sysconfig/grub
+awk '/GRUB_CMDLINE_LINUX/ {for(i = 1; i <= NF; i++) {if($i=="rhgb") continue; printf "%s ",$i }; printf "net.ifnames=0\n"; next} {print}' /etc/sysconfig/grub.orig > /etc/sysconfig/grub
 grub2-mkconfig -o /boot/grub2/grub.cfg
 
 
 # Cron backup of iptables daily
 mv backups/iptables_save.sh /etc/cron.daily/
+chmod +x /etc/cron.daily/iptables_save.sh
