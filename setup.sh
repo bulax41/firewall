@@ -4,7 +4,7 @@
 # Packages
 yum clean all
 yum -y install epel-release
-yum -y install wireshark zip ntp python2-pip strongswan openvpn easy-rsa iptables-services net-snmp net-tools quagga  sysstat traceroute telnet open-vm-tools policycoreutils-python bridge-utils libsemanage-python
+yum -y install ipset ipset-service wireshark zip ntp python2-pip strongswan openvpn easy-rsa iptables-services net-snmp net-tools quagga  sysstat traceroute telnet open-vm-tools policycoreutils-python bridge-utils libsemanage-python
 pip install python-telegram-bot --upgrade
 pip install configparser --upgrade
 
