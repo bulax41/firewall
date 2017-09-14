@@ -2,9 +2,17 @@
 wan=101
 trading=102
 mgmt=100
+ld4=74
+dc3=73
+ny4=71
+ch2=70
+fr2=72
+ty3=75
+hk1=76
+
 HOSTNAME=""
 
-if [ "x$1" != "x"]
+if [ "x$1" != "x" ]
 then
     HOSTNAME=$1
     LOCATION=$(echo $1 | awk -F "-" '{print $3}')
@@ -15,6 +23,7 @@ fi
 yum clean all
 yum -y install epel-release
 yum -y install ipset ipset-service wireshark zip ntp python2-pip strongswan openvpn easy-rsa iptables-services net-snmp net-tools quagga  sysstat traceroute telnet open-vm-tools policycoreutils-python bridge-utils libsemanage-python
+pip install --upgrade pip
 pip install python-telegram-bot --upgrade
 pip install configparser --upgrade
 
@@ -104,8 +113,8 @@ systemctl disable kdump
 systemctl disable NetworkManager
 systemctl disable postfix
 systemctl enable ntpd
-systemctl enable strongswan
-systemctl enable openvpn@server
+systemctl disable strongswan
+systemctl disable openvpn@server
 systemctl enable iptables
 systemctl enable snmpd
 systemctl enable zebra
@@ -197,10 +206,11 @@ grub2-mkconfig -o /boot/grub2/grub.cfg
 # Cron backup of iptables daily
 cat > /etc/cron.daily/iptables_backup.sh <<-END
 #!/bin/bash
-iptables-save > /root/firewall/backups/iptables.$(date +%Y%m%d)
+iptables-save > /root/firewall/backups/iptables.\$(date +%Y%m%d)
 find /root/firewall/backups/ -mtime +30 -delete
-
+service iptables save
 END
+chmod +x /etc/cron.daily/iptables_backup.sh
 
 if [ "x$HOSTNAME" != "x" ]
 then
@@ -221,8 +231,3 @@ END
 
 
 fi
-
-
-
-
-chmod +x /etc/cron.daily/iptables_save.sh
