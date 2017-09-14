@@ -2,7 +2,7 @@
 wan=101
 trading=102
 mgmt=100
-ld4=74
+ld5=74
 dc3=73
 ny4=71
 ch2=70
@@ -217,16 +217,15 @@ then
 
 # iproute2 tables
 cat >> /etc/iproute2/rt_tables <<-END
-  $mgmt mgmt
-  $wan wan
-  $trading trading
+$mgmt mgmt
+$wan wan
+$trading trading
 END
 
-  echo $HOSTNAME > /etc/$HOSTNAME
-  cat > /etc/resolv.conf <<-END
-  search beeks.local
-  nameserver 10.$((LOCATION)).$((LOCATION)).199
-
+echo $HOSTNAME > /etc/hostname
+cat > /etc/resolv.conf <<-END
+search beeks.local
+nameserver 10.$((LOCATION)).$((LOCATION)).199
 END
 
 

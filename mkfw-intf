@@ -31,21 +31,6 @@ if [ $DIRECTION != "IN" -a $DIRECTION != "OUT" -a $DIRECTION != "MGMT" ]; then
 	exit
 fi
 
-notfound=0
-for i in $(awk '{if(NR>2) print $1}' /proc/net/dev)
-do
-	if [ "$i" == "$INT:" ]; then
-		notfound=1
-		break
-	fi
-done
-
-if [ $notfound == "0" ]; then
-	echo "Interface not found"
-	usage
-	exit
-fi
-
 
 # Delete Any Previous Rules For Interface
 LINE=$(iptables -L $CHAIN_NAME -nv --line-numbers |awk "\$8 ~ /^$2\$/ {print \$1}")
