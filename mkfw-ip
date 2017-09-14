@@ -63,3 +63,10 @@ if [ $? -eq 0 ]; then
 else
         iptables -I $CHAIN_ETH_OUT -s $1 -j $CHAIN_IP_OUT
 fi
+# Mangle Table
+iptables -t mangle -L OUTBOUND -n | grep -q "^$CHAIN_IP_OUT "
+if [ $? -eq 0 ]; then
+        echo "WARNING: RULE $CHAIN_IP_OUT already exists"
+else
+        iptables -t mangle -I OUTBOUND -s $1 -j $CHAIN_IP_OUT
+fi

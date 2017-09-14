@@ -1,5 +1,15 @@
 #!/bin/bash
+wan=101
+trading=102
+mgmt=100
+HOSTNAME=""
 
+if [ "x$1" != "x"]
+then
+    HOSTNAME=$1
+    LOCATION=$(echo $1 | awk -F "-" '{print $3}')
+    FWNUM=$(echo $1 | cut -d "-" -f 1 | cut -c 3,4,5)
+fi
 
 # Packages
 yum clean all
@@ -75,15 +85,13 @@ net.core.somaxconn = 32768
 
 # Increase number of incoming connections backlog
 net.core.netdev_max_backlog = 16384
-net.core.dev_weight = 64
+net.core.dev_weight = 1024
 
 # Increase the maximum amount of option memory buffers
 net.core.optmem_max = 65535
 
 # Increase size of RPC datagram queue length
 net.unix.max_dgram_qlen = 50
-
-
 
 END
 
@@ -102,12 +110,81 @@ systemctl enable iptables
 systemctl enable snmpd
 systemctl enable zebra
 
-# tuning
 
-# Configs
-cp config/iptables /etc/sysconfig/iptables
-# SNMP
+# IPTables Initialize
+cat > /etc/sysconfig/iptables <<-END
+*mangle
+:PREROUTING ACCEPT [0:0]
+:INPUT ACCEPT [0:0]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+:POSTROUTING ACCEPT [0:0]
+:OUTBOUND - [0:0]
+COMMIT
+*nat
+:PREROUTING ACCEPT [0:0]
+:POSTROUTING ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+-A POSTROUTING -o gre+ -j ACCEPT
+-A POSTROUTING -o tun+ -j ACCEPT
+COMMIT
+*filter
+:INPUT DROP [0:0]
+:FORWARD DROP [0:0]
+:OUTPUT DROP [0:0]
+:DROPnLOG - [0:0]
+:FORWARDnDROP - [0:0]
+:INBOUNDnDROP - [0:0]
+:OUTPUTnDROP - [0:0]
+:INPUTnDROP - [0:0]
+:OUTBOUNDnDROP - [0:0]
+:INBOUND - [0:0]
+:VPN_PEERS - [0:0]
+:OUTBOUND - [0:0]
+:INBOUND-DEFAULT - [0:0]
+:OUTBOUND-DEFAULT - [0:0]
+-A INPUT -m state --state RELATED -j ACCEPT
+-A INPUT -m state --state ESTABLISHED -j ACCEPT
+-A INPUT -m state --state INVALID -j DROP
+-A INPUT -i lo -j ACCEPT
+-A INPUT -p icmp -m limit --limit 10/s -j ACCEPT
+-A INPUT -p udp -m udp --dport 1194 -m limit --limit 5/s -j ACCEPT
+-A INPUT -p esp -j VPN_PEERS
+-A INPUT -p 47 -j VPN_PEERS
+-A INPUT -p udp -m udp --dport 500 -j VPN_PEERS
+-A INPUT -p udp -m udp --dport 4500 -j VPN_PEERS
+-A INPUT -j INPUTnDROP
+-A INPUTnDROP -j DROP
+-A VPN_PEERS -j DROP
+-A FORWARD -j FORWARDnDROP
+-A FORWARDnDROP -m limit --limit 5/s -j LOG --log-prefix "FORWARD DROP:  "
+-A FORWARDnDROP -j DROP
+-A OUTPUT -m state --state ESTABLISHED -j ACCEPT
+-A OUTPUT -m state --state RELATED -j ACCEPT
+-A OUTPUT -o lo -j ACCEPT
+-A OUTPUT -p icmp -j ACCEPT
+-A OUTPUT -o gre+ -j ACCEPT
+-A OUTPUT -p udp -m udp --dport 53 -j ACCEPT
+-A OUTPUT -p udp -m udp --dport 123 -j ACCEPT
+-A OUTPUT -p tcp -m tcp --dport 80 -j ACCEPT
+-A OUTPUT -p tcp -m tcp --dport 443 -j ACCEPT
+-A OUTPUT -p udp -m udp --dport 500 -j VPN_PEERS
+-A OUTPUT -p udp -m udp --dport 4500 -j VPN_PEERS
+-A OUTPUT -p esp -j VPN_PEERS
+-A OUTPUT -p 47 -j VPN_PEERS
+-A OUTPUT -j OUTPUTnDROP
+-A OUTPUTnDROP -m limit --limit 5/s -j LOG --log-prefix "OUTPUT DROP:  "
+-A OUTPUTnDROP -j DROP
+-A INBOUND -j INBOUNDnDROP
+-A INBOUNDnDROP -j DROP
+-A OUTBOUND -j OUTBOUNDnDROP
+-A OUTBOUNDnDROP -j DROP
+-A DROPnLOG -j DROP
+-A OUTBOUND-DEFAULT -j OUTBOUNDnDROP
+-A INBOUND-DEFAULT -j INBOUNDnDROP
+COMMIT
 
+END
 
 # SE LINUX
 setsebool -P allow_zebra_write_config 1
@@ -118,5 +195,34 @@ grub2-mkconfig -o /boot/grub2/grub.cfg
 
 
 # Cron backup of iptables daily
-mv backups/iptables_save.sh /etc/cron.daily/
+cat > /etc/cron.daily/iptables_backup.sh <<-END
+#!/bin/bash
+iptables-save > /root/firewall/backups/iptables.$(date +%Y%m%d)
+find /root/firewall/backups/ -mtime +30 -delete
+
+END
+
+if [ "x$HOSTNAME" != "x" ]
+then
+
+# iproute2 tables
+cat >> /etc/iproute2/rt_tables <<-END
+  $mgmt mgmt
+  $wan wan
+  $trading trading
+END
+
+  echo $HOSTNAME > /etc/$HOSTNAME
+  cat > /etc/resolv.conf <<-END
+  search beeks.local
+  nameserver 10.$((LOCATION)).$((LOCATION)).199
+
+END
+
+
+fi
+
+
+
+
 chmod +x /etc/cron.daily/iptables_save.sh

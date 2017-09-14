@@ -19,13 +19,20 @@ CHAININ=INBOUND-$1
 CHAINOUT=OUTBOUND-$1
 echo "PREROUTING TABLE"
 PREROUTE=$(iptables -t nat -L PREROUTING -nv --line-numbers | grep $1)
-if [ "x$PREROUTE" = "x" ]; then 
+if [ "x$PREROUTE" = "x" ]; then
 	echo "No rule for $1 exists"
-else 
+else
 	echo "$PREROUTE"
 fi
 echo "POSTROUTING TABLE"
 POSTROUTE=$(iptables -t nat -L POSTROUTING -nv --line-numbers | grep $1)
+if [ "x$POSTROUTE" = "x" ]; then
+	echo "No rule for $1 exists"
+else
+	echo "$POSTROUTE"
+fi
+echo "MANGLE Table"
+POSTROUTE=$(iptables -t mangle -L PREROUTING -nv --line-numbers | grep $1)
 if [ "x$POSTROUTE" = "x" ]; then
 	echo "No rule for $1 exists"
 else
