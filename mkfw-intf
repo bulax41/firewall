@@ -61,7 +61,7 @@ if [ $DIRECTION != "MGMT" ]; then
   fi
 
 
-  if [ $DIRECTION == "IN"]; then
+  if [ $DIRECTION == "IN" ]; then
     iptables -t mangle -I PREROUTING -i $2 -j OUTBOUND
   fi
 else
@@ -71,7 +71,7 @@ else
   if [ "x$TABLE" != "x" ]
   then
     echo "fwmark $((TABLEID)) lookup $TABLE" > $SYSCONFIG/rule-$INT
-    echo "iif lo to 172.16.0.0/12 lookup $TABLE " >> > $SYSCONFIG/rule-$INT
+    echo "iif lo to 172.16.0.0/12 lookup $TABLE " >> $SYSCONFIG/rule-$INT
     echo "0.0.0.0/0 via $GATEWAY table $TABLE " > $SYSCONFIG/route-$INT
   fi
 

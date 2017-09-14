@@ -27,6 +27,19 @@ pip install --upgrade pip
 pip install python-telegram-bot --upgrade
 pip install configparser --upgrade
 
+# services
+systemctl disable firewalld
+systemctl enable irqbalance
+systemctl disable kdump
+systemctl disable NetworkManager
+systemctl disable postfix
+systemctl enable ntpd
+systemctl disable strongswan
+systemctl disable openvpn@server
+systemctl enable iptables
+systemctl enable snmpd
+systemctl enable zebra
+
 # Sysctl variables
 cat >> /etc/sysctl.conf <<-END
 
@@ -105,19 +118,6 @@ net.unix.max_dgram_qlen = 50
 END
 
 
-# services
-systemctl disable avahi-daemon
-systemctl disable firewalld
-systemctl enable irqbalance
-systemctl disable kdump
-systemctl disable NetworkManager
-systemctl disable postfix
-systemctl enable ntpd
-systemctl disable strongswan
-systemctl disable openvpn@server
-systemctl enable iptables
-systemctl enable snmpd
-systemctl enable zebra
 
 
 # IPTables Initialize
@@ -227,6 +227,7 @@ cat > /etc/resolv.conf <<-END
 search beeks.local
 nameserver 10.$((LOCATION)).$((LOCATION)).199
 END
+
 
 
 fi

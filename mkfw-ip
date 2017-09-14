@@ -15,7 +15,7 @@ CHAIN_ETH_OUT="OUTBOUND"
 CHAIN_IP_IN="INBOUND-$PIP"
 CHAIN_IP_OUT="OUTBOUND-$PIP"
 
-###################################
+#######################################
 #
 # Create IP Chain
 # OUT Default: ESTABLISHED,RELATED,ICMP-ECHO
