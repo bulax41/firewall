@@ -44,6 +44,12 @@ else
   iptables -A $CHAIN_IP_OUT -p icmp --icmp-type echo-request -j ACCEPT
 	iptables -A $CHAIN_IP_OUT -j OUTBOUND-DEFAULT
 fi
+iptables -t mangle -L $CHAIN_IP_OUT > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+	echo "WARNING: mangle chain $CHAIN_IP_OUT already exists"
+else
+	iptables -N $CHAIN_IP_OUT -t mangle
+fi
 
 ###################################
 #
