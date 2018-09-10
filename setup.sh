@@ -22,7 +22,7 @@ fi
 # Packages
 yum clean all
 yum -y install epel-release
-yum -y install ipset ipset-service wireshark zip ntp python2-pip strongswan openvpn easy-rsa iptables-services net-snmp net-tools quagga  sysstat traceroute telnet  policycoreutils-python bridge-utils libsemanage-python ipa-client
+yum -y install ipset ipset-service wireshark zip ntp python2-pip strongswan openvpn easy-rsa iptables-services net-snmp net-tools quagga  sysstat traceroute telnet  policycoreutils-python bridge-utils libsemanage-python ipa-client nmap
 pip install --upgrade pip
 pip install python-telegram-bot --upgrade
 pip install configparser --upgrade
@@ -39,6 +39,7 @@ systemctl disable openvpn@server
 systemctl enable iptables
 systemctl enable snmpd
 systemctl enable zebra
+systemctl disable chronyd
 
 # Sysctl variables
 cat >> /etc/sysctl.conf <<-END
@@ -204,11 +205,11 @@ grub2-mkconfig -o /boot/grub2/grub.cfg
 
 
 # Cron backup of iptables daily
+mkdir /root/firewall/backups
 cat > /etc/cron.daily/iptables_backup.sh <<-END
 #!/bin/bash
 iptables-save > /root/firewall/backups/iptables.\$(date +%Y%m%d)
 find /root/firewall/backups/ -mtime +30 -delete
-service iptables save
 END
 chmod +x /etc/cron.daily/iptables_backup.sh
 
