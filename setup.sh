@@ -9,6 +9,8 @@ ch2=70
 fr2=72
 ty3=75
 hk1=76
+sgx=77
+domain="beeks.local"
 
 HOSTNAME=""
 
@@ -17,6 +19,8 @@ then
     HOSTNAME=$1
     LOCATION=$(echo $1 | awk -F "-" '{print $3}')
     FWNUM=$(echo $1 | cut -d "-" -f 1 | cut -c 3,4,5)
+else
+    echo 
 fi
 
 # Packages
@@ -28,18 +32,18 @@ pip install python-telegram-bot --upgrade
 pip install configparser --upgrade
 
 # services
-systemctl disable firewalld
-systemctl enable irqbalance
-systemctl disable kdump
-systemctl disable NetworkManager
-systemctl disable postfix
-systemctl enable ntpd
-systemctl disable strongswan
-systemctl disable openvpn@server
+systemctl --now disable firewalld
+systemctl --now enable irqbalance
+systemctl --now disable kdump
+systemctl --now disable NetworkManager
+systemctl --now disable postfix
+systemctl --now disable chronyd
+systemctl --now enable ntpd
+systemctl --now disable strongswan
+systemctl --now disable openvpn@server
 systemctl enable iptables
 systemctl enable snmpd
 systemctl enable zebra
-systemctl disable chronyd
 
 # Sysctl variables
 cat >> /etc/sysctl.conf <<-END
