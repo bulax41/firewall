@@ -61,10 +61,10 @@ if [ $? -eq 0 ]; then
 	log iptables -t mangle -F $CHAIN_IP_OUT
 	LINE=$(iptables -t mangle -L $CHAIN_ETH_OUT -nv --line-numbers | awk "{if(\$4 == \"$CHAIN_IP_OUT\") print \$1}")
         if [ "x$LINE" != "x" ]; then
-                iptables -D $CHAIN_ETH_OUT $LINE
-                iptables -X $CHAIN_IP_OUT
-                log iptables -D $CHAIN_ETH_OUT $LINE
-                log iptables -X $CHAIN_IP_OUT
+                iptables -t mangle -D $CHAIN_ETH_OUT $LINE
+                iptables -t mangle -X $CHAIN_IP_OUT
+                log iptables -t mangle -D $CHAIN_ETH_OUT $LINE
+                log iptables -t mangle -X $CHAIN_IP_OUT
         fi
 
 else
