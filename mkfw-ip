@@ -1,14 +1,14 @@
 #!/bin/bash
+help () {
+  echo
+  echo "Usage: mkfw-ip ip ratelimit connlimit "
+  echo "Example: mkfw-ip 172.16.100.11 100 50000"
+  echo "Rate limit: limit the number of new connections per second for DoS prevention.  Default is 20/second"
+  echo "Limit total number of established connections.  Prevent firewall from running out of memory in a DoS"
+  echo
+  exit
+}
 
-if [ "x$1" = "x" ]; then
-        echo
-        echo "Usage: mkfw-ip ip ratelimit connlimit "
-        echo "Example: mkfw-ip 172.16.100.11 100 50000"
-        echo "Rate limit: limit the number of new connections per second for DoS prevention.  Default is 20/second"
-        echo "Limit total number of established connections.  Prevent firewall from running out of memory in a DoS"
-        echo
-        exit
-fi
 
 PIP=$1
 CHAIN_ETH_IN="INBOUND"
@@ -17,6 +17,13 @@ CHAIN_IP_IN="INBOUND-$PIP"
 CHAIN_IP_OUT="OUTBOUND-$PIP"
 RATELIMIT=$2
 CONNLIMIT=$3
+
+NARGS=$(echo $@ | wc -w)
+if [ $NARGS -ne 3 ]; then
+        echo "Incorrect number os arguments"
+        help()
+fi
+
 
 #######################################
 #
@@ -43,7 +50,7 @@ if [ $? -eq 0 ]; then
         echo "WARNING: $CHAIN_IP_OUT already exists"
 else
   iptables -N $CHAIN_IP_OUT
-  iptables -A $CHAIN_IP_OUT-m hashlimit --hashlimit-above 15mb/s --hashlimit-mode srcip --hashlimit-burst 15mb -j DROPnLOG
+  iptables -A $CHAIN_IP_OUT -m hashlimit --hashlimit-above 15mb/s --hashlimit-mode srcip --hashlimit-burst 15mb -j DROPnLOG
 	iptables -A $CHAIN_IP_OUT -m state --state RELATED,ESTABLISHED  -j ACCEPT
 	iptables -A $CHAIN_IP_OUT -m state --state INVALID -j DROPnLOG
   iptables -A $CHAIN_IP_OUT -m connlimit --connlimit-daddr --connlimit-mask 32 --connlimit-above $CONNLIMIT -m comment --comment "connlimit" -j DROPnLOG
