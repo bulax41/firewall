@@ -20,8 +20,8 @@ CONNLIMIT=$3
 
 NARGS=$(echo $@ | wc -w)
 if [ $NARGS -ne 3 ]; then
-        echo "Incorrect number os arguments"
-        help()
+        echo "Incorrect number of arguments"
+        help
 fi
 
 
