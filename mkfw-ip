@@ -50,7 +50,7 @@ if [ $? -eq 0 ]; then
         echo "WARNING: $CHAIN_IP_OUT already exists"
 else
   iptables -N $CHAIN_IP_OUT
-  iptables -A $CHAIN_IP_OUT -m hashlimit --hashlimit-above 15mb/s --hashlimit-mode srcip --hashlimit-burst 15mb -j DROPnLOG
+  iptables -A $CHAIN_IP_OUT -m hashlimit --hashlimit-above 15mb/s --hashlimit-mode srcip --hashlimit-burst 30mb -j DROPnLOG
 	iptables -A $CHAIN_IP_OUT -m state --state RELATED,ESTABLISHED  -j ACCEPT
 	iptables -A $CHAIN_IP_OUT -m state --state INVALID -j DROPnLOG
   iptables -A $CHAIN_IP_OUT -m connlimit --connlimit-daddr --connlimit-mask 32 --connlimit-above $CONNLIMIT -m comment --comment "connlimit" -j DROPnLOG
