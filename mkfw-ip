@@ -2,18 +2,21 @@
 
 if [ "x$1" = "x" ]; then
         echo
-        echo "Usage: mkfw-ip 'IP Address'"
-        echo "Example: mkfw-ip 172.16.100.11"
+        echo "Usage: mkfw-ip ip ratelimit connlimit "
+        echo "Example: mkfw-ip 172.16.100.11 100 50000"
+        echo "Rate limit: limit the number of new connections per second for DoS prevention.  Default is 20/second"
+        echo "Limit total number of established connections.  Prevent firewall from running out of memory in a DoS"
         echo
         exit
 fi
 
-ETH=$(echo $1 |tr [:lower:] [:upper:])
 PIP=$1
 CHAIN_ETH_IN="INBOUND"
 CHAIN_ETH_OUT="OUTBOUND"
 CHAIN_IP_IN="INBOUND-$PIP"
 CHAIN_IP_OUT="OUTBOUND-$PIP"
+RATELIMIT=$2
+CONNLIMIT=$3
 
 #######################################
 #
@@ -27,20 +30,23 @@ if [ $? -eq 0 ]; then
         echo "WARNING: $CHAIN_IP_IN already exists"
 else
 	iptables -N $CHAIN_IP_IN
-	iptables -A $CHAIN_IP_IN -m state --state ESTABLISHED -j ACCEPT
-	iptables -A $CHAIN_IP_IN -m state --state RELATED -j ACCEPT
+	iptables -A $CHAIN_IP_IN -m state --state ESTABLISHED,RELATED -j ACCEPT
 	iptables -A $CHAIN_IP_IN -m state --state INVALID -j DROPnLOG
-	iptables -A $CHAIN_IP_IN -p icmp --icmp-type echo-request -j ACCEPT
+  iptables -A $CHAIN_IP_IN -m connlimit --connlimit-daddr --connlimit-mask 32 --connlimit-above $CONNLIMIT -m comment --comment "connlimit" -j DROPnLOG
+  iptables -A $CHAIN_IP_IN -m hashlimit --hashlimit-above $RATELIMIT --hashlimit-name $CHAIN_IP_IN -m comment --comment "ratelimit" -j DROPnLOG
+	iptables -A $CHAIN_IP_IN -p icmp --icmp-type echo-request -m limit --limit 20s -j ACCEPT
 	iptables -A $CHAIN_IP_IN -j INBOUND-DEFAULT
 fi
+
 iptables -L $CHAIN_IP_OUT > /dev/null 2>&1
 if [ $? -eq 0 ]; then
         echo "WARNING: $CHAIN_IP_OUT already exists"
 else
   iptables -N $CHAIN_IP_OUT
-	iptables -A $CHAIN_IP_OUT -m state --state RELATED -j ACCEPT
-	iptables -A $CHAIN_IP_OUT -m state --state ESTABLISHED -j ACCEPT
+  iptables -A $CHAIN_IP_OUT-m hashlimit --hashlimit-above 15mb/s --hashlimit-mode srcip --hashlimit-burst 15mb -j DROPnLOG
+	iptables -A $CHAIN_IP_OUT -m state --state RELATED,ESTABLISHED  -j ACCEPT
 	iptables -A $CHAIN_IP_OUT -m state --state INVALID -j DROPnLOG
+  iptables -A $CHAIN_IP_OUT -m connlimit --connlimit-daddr --connlimit-mask 32 --connlimit-above $CONNLIMIT -m comment --comment "connlimit" -j DROPnLOG
   iptables -A $CHAIN_IP_OUT -p icmp --icmp-type echo-request -j ACCEPT
 	iptables -A $CHAIN_IP_OUT -j OUTBOUND-DEFAULT
 fi

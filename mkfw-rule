@@ -8,51 +8,73 @@ log() {
    logger -t $COMMAND "$message"
 }
 
+help() {
+  echo
+  echo "Usage: mkfw-rule (in|out) ip protocol port source"
+  echo "Example: mkfw-rule in 172.16.3.151 tcp 80 any"
+  echo
+  echo "IP: all, default, IP address or a Network."
+  echo "Protocol: Protocol number or name.  see /etc/protocols "
+  echo "Port: 0-65535, or 0 for protocols other than tcp/udp"
+  echo "Source: any, IP address, ipset:[ipset-name]"
+  echo
+  exit
+}
 NARGS=$(echo $@ | wc -w)
-if [ $NARGS -le 3 ]; then
-        echo "Insufficient Args"
-        echo
-        echo "Usage: mkfw-rule (deny|accept) (in|out) 'IP Address' (iptables args)"
-        echo "Example: mkfw-rule accept in 172.16.3.151 -p tcp --dport 80"
-        echo
-        exit
+if [ $NARGS -ne 5 ]; then
+        echo "Incorrect number os arguments"
+        help()
 fi
 
-if [ "x$1" != "xdeny" -a "x$1" != "xaccept" ]; then
-        echo "Arg 1: deny or accept ($1) "
-        echo
-        echo "Usage: mkfw-rule (deny|accept) (in|out) 'IP Address' (iptables args)"
-        echo "Example: mkfw-rule accept in 172.16.3.151 -p tcp --dport 80"
-        echo
-        exit
+PROTOCOL=$3
+
+if [ "x$1" != "xin" ]; then
+  DIRECTION="in"
+elif [ "x$1" != "xout" ]; then
+  DIRECTION="out"
+else
+  echo "Arg 1: in or out ($1)"
+  help()
 fi
 
-if [ "x$2" != "xin" -a "x$2" != "xout" ]; then
-        echo "Arg 2: in or out ($2)"
-        echo
-        echo "Usage: mkfw-rule (deny|accept) (in|out) 'IP Address' (iptables args)"
-        echo "Example: mkfw-rule accept in 172.16.3.151 -p tcp --dport 80"
-        echo
-        exit
+
+if [ $4 -eq 0 ]; then
+  PORT=""
+elif [ $4 -gt 0 -a $4 -lt 65536 ]; then
+  PORT="--port  $4"
+else
+  echo "Port is invalid ($4)"
+  help()
 fi
 
-IP=$3
-if [ $3 = "all" ]; then
+IP=$2
+if [ $2 = "all" ]; then
   IP=$(iptables -L OUTBOUND -nv | awk '{print $8}' | grep '^[0-9]')
-elif [ $3 = "default" ]; then
-  IP=$(echo $3 |tr [:lower:] [:upper:])
+elif [ $2 = "default" ]; then
+  IP=$(echo $2 |tr [:lower:] [:upper:])
 fi
+
+SOURCE=$5
+if [ "x$SOURCE" == "xany" ]; then
+  SOURCE="-s 0.0.0.0/0"
+elif [ ${SOURCE#ipset:} != "" ]; then
+  if [ ! $(ipset list ${SOURCE#ipset:})]; then
+      echo "ipset ${SOURCE#ipset:} doesn't exist."
+      exit
+  else
+    SOURCE=" -m set --match-set ${SOURCE#ipset:} src "
+  fi
+else
+  SOURCE="-s $5"
+  ipset create $CHAIN-$PROTOCOL-$PORT hash:net counters > /dev/null 2>&1
+  ipset add $CHAIN-$PROTOCOL-$PORT $5
+fi
+
 
 for i in $IP
 do
 
-
-  if [ $2 = "in" ]; then
-        CHAIN="INBOUND-$i"
-  else
-        CHAIN="OUTBOUND-$i"
-  fi
-
+  CHAIN=$DIRECTION-$i
   iptables -L $CHAIN -nv > /dev/null 2>&1
   if [ $? -ne 0 ]; then
         echo
@@ -62,16 +84,12 @@ do
         exit
   fi
 
-  if [ $1 = "deny" ]; then
-        JUMP="DROP"
-  else
-        JUMP="ACCEPT"
-  fi
-
-  IPTABLESARGS=$(echo $@ | cut -d " " -f 4-)
 
   LNUM=$(iptables -L $CHAIN -nv --line-numbers | tail -1 | awk '{print $1}')
-  iptables -I $CHAIN $LNUM -j $JUMP $IPTABLESARGS
-  #log iptables -I $CHAIN $LNUM -j $JUMP $IPTABLESARGS
+  iptables -I $CHAIN $LNUM -p $PROTOCOL $PORT $SOURCE -j $ACCEPT
+  log iptables -I $CHAIN $LNUM -p $PROTOCOL $PORT $SOURCE -j $ACCEPT
+
+
+
 
 done
