@@ -37,8 +37,8 @@ else
   echo "Arg 1: in or out ($1)"
   help
 fi
-CHAIN=$DIRECTION-$i
-IPSET=$CHAIN-$PROTOCOL-$4
+
+IPSET=$DIRECTION-$2-$PROTOCOL-$4
 
 if [ $4 -eq 0 ]; then
   PORT=""
@@ -76,7 +76,7 @@ echo "SOURCE=$SOURCE"
 for i in $IP
 do
 
-
+  CHAIN=$DIRECTION-$i
   iptables -L $CHAIN -nv > /dev/null 2>&1
   if [ $? -ne 0 ]; then
         echo
