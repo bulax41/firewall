@@ -28,9 +28,9 @@ fi
 
 PROTOCOL=$3
 
-if [ "x$1" != "xin" ]; then
+if [ "x$1" == "xin" ]; then
   DIRECTION="INBOUND"
-elif [ "x$1" != "xout" ]; then
+elif [ "x$1" == "xout" ]; then
   DIRECTION="OUTBOUND"
 else
   echo "Arg 1: in or out ($1)"
@@ -56,8 +56,8 @@ fi
 
 SOURCE=$5
 if [ "x$SOURCE" == "xany" ]; then
-  SOURCE="-s 0.0.0.0/0"
-elif [ ${SOURCE#ipset:} != "" ]; then
+  SOURCE=" -s 0.0.0.0/0 "
+elif [ ${SOURCE#ipset:} != "$SOURCE" ]; then
   if [ ! $(ipset list ${SOURCE#ipset:})]; then
       echo "ipset ${SOURCE#ipset:} doesn't exist."
       exit
@@ -65,7 +65,7 @@ elif [ ${SOURCE#ipset:} != "" ]; then
     SOURCE=" -m set --match-set ${SOURCE#ipset:} src "
   fi
 else
-  SOURCE="-s $5"
+  SOURCE=" -s $5 "
   ipset create $CHAIN-$PROTOCOL-$PORT hash:net counters > /dev/null 2>&1
   ipset add $CHAIN-$PROTOCOL-$PORT $5
 fi
