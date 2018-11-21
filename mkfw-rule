@@ -23,7 +23,7 @@ help() {
 NARGS=$(echo $@ | wc -w)
 if [ $NARGS -ne 5 ]; then
         echo "Incorrect number os arguments"
-        help()
+        help
 fi
 
 PROTOCOL=$3
