@@ -41,7 +41,7 @@ fi
 if [ $4 -eq 0 ]; then
   PORT=""
 elif [ $4 -gt 0 -a $4 -lt 65536 ]; then
-  PORT="--port  $4"
+  PORT=" --dport  $4 "
 else
   echo "Port is invalid ($4)"
   help
