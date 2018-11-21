@@ -57,7 +57,7 @@ fi
 SOURCE=$5
 if [ "x$SOURCE" == "xany" ]; then
   SOURCE=" -s 0.0.0.0/0 "
-elif [ ${SOURCE#ipset:} != "$SOURCE" ]; then
+elif [ ${SOURCE#ipset:} != $SOURCE ]; then
   if [ ! $(ipset list ${SOURCE#ipset:})]; then
       echo "ipset ${SOURCE#ipset:} doesn't exist."
       exit
