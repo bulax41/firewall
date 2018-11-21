@@ -28,6 +28,7 @@ fi
 
 PROTOCOL=$3
 
+
 if [ "x$1" == "xin" ]; then
   DIRECTION="INBOUND"
 elif [ "x$1" == "xout" ]; then
@@ -37,6 +38,7 @@ else
   help
 fi
 CHAIN=$DIRECTION-$i
+IPSET=$CHAIN-$PROTOCOL-$4
 
 if [ $4 -eq 0 ]; then
   PORT=""
@@ -66,8 +68,8 @@ elif [ ${SOURCE#ipset:} != $SOURCE ]; then
   fi
 else
   SOURCE=" -s $5 "
-  ipset create $CHAIN-$PROTOCOL-$PORT hash:net counters 
-  ipset add $CHAIN-$PROTOCOL-$PORT $5
+  ipset create $IPSET hash:net counters
+  ipset add $IPSET $5
 fi
 
 echo "SOURCE=$SOURCE"
