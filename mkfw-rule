@@ -36,7 +36,7 @@ else
   echo "Arg 1: in or out ($1)"
   help
 fi
-
+CHAIN=$DIRECTION-$i
 
 if [ $4 -eq 0 ]; then
   PORT=""
@@ -58,7 +58,7 @@ SOURCE=$5
 if [ "x$SOURCE" == "xany" ]; then
   SOURCE=" -s 0.0.0.0/0 "
 elif [ ${SOURCE#ipset:} != $SOURCE ]; then
-  if [ ! $(ipset list ${SOURCE#ipset:})]; then
+  if [ ! $(ipset list ${SOURCE#ipset:}) ] ; then
       echo "ipset ${SOURCE#ipset:} doesn't exist."
       exit
   else
@@ -66,15 +66,15 @@ elif [ ${SOURCE#ipset:} != $SOURCE ]; then
   fi
 else
   SOURCE=" -s $5 "
-  ipset create $CHAIN-$PROTOCOL-$PORT hash:net counters > /dev/null 2>&1
+  ipset create $CHAIN-$PROTOCOL-$PORT hash:net counters 
   ipset add $CHAIN-$PROTOCOL-$PORT $5
 fi
 
-
+echo "SOURCE=$SOURCE"
 for i in $IP
 do
 
-  CHAIN=$DIRECTION-$i
+
   iptables -L $CHAIN -nv > /dev/null 2>&1
   if [ $? -ne 0 ]; then
         echo
