@@ -86,8 +86,8 @@ do
 
 
   LNUM=$(iptables -L $CHAIN -nv --line-numbers | tail -1 | awk '{print $1}')
-  iptables -I $CHAIN $LNUM -p $PROTOCOL $PORT $SOURCE -j $ACCEPT
-  log iptables -I $CHAIN $LNUM -p $PROTOCOL $PORT $SOURCE -j $ACCEPT
+  iptables -I $CHAIN $LNUM -p $PROTOCOL $PORT $SOURCE -j ACCEPT
+  log iptables -I $CHAIN $LNUM -p $PROTOCOL $PORT $SOURCE -j ACCEPT
 
 
 
