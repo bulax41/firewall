@@ -34,7 +34,7 @@ elif [ "x$1" != "xout" ]; then
   DIRECTION="out"
 else
   echo "Arg 1: in or out ($1)"
-  help()
+  help
 fi
 
 
@@ -44,7 +44,7 @@ elif [ $4 -gt 0 -a $4 -lt 65536 ]; then
   PORT="--port  $4"
 else
   echo "Port is invalid ($4)"
-  help()
+  help
 fi
 
 IP=$2
