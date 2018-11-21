@@ -29,9 +29,9 @@ fi
 PROTOCOL=$3
 
 if [ "x$1" != "xin" ]; then
-  DIRECTION="in"
+  DIRECTION="INBOUND"
 elif [ "x$1" != "xout" ]; then
-  DIRECTION="out"
+  DIRECTION="OUTBOUND"
 else
   echo "Arg 1: in or out ($1)"
   help
