@@ -88,4 +88,5 @@ if [ $? -eq 0 ]; then
         echo "WARNING: RULE $CHAIN_IP_OUT already exists"
 else
         iptables -t mangle -I OUTBOUND -s $1 -j $CHAIN_IP_OUT
+        iptables -t mangle -I $CHAIN_IP_OUT -j ACCEPT 
 fi
