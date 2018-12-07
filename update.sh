@@ -6,6 +6,7 @@ then
   echo update.sh hostname
   echo
   echo example: update.sh fw50-customer-ny4
+  exit
 fi
 
 
