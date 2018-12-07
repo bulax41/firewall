@@ -117,9 +117,7 @@ done
 sed -i.org '/^ExecStart.*$/c\ExecStart=-/sbin/agetty --autologin root --noclear %I $TERM' /usr/lib/systemd/system/getty@.service
 sed -i.org '/^#PermitRootLogin/c\PermitRootLogin no' /etc/ssh/sshd_config
 
-yum remove open-vm-tools
 
-yum -y upgrade
 yum install ipa-client ipset ipset-service
 systemctl enable ipset
 
