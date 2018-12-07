@@ -10,7 +10,8 @@ fr2=72
 ty3=75
 hk1=76
 sgx=77
-sites = ("ld5","fr2","ny4","ch2","dc3","ty3","sgx","hk1")
+declare -a sites
+sites=("ld5" "fr2" "ny4" "ch2" "dc3" "ty3" "sgx" "hk1")
 domain="beeks.local"
 
 help() {
@@ -36,12 +37,12 @@ then
     if [ $found -eq 0 ]
     then
       echo "Site $LOCATION not in ${sites[*]}"
-      help()
+      help
       exit
     fi
 
 else
-    help()
+    help
     exit
 fi
 
