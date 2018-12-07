@@ -284,6 +284,10 @@ include /etc/logrotate.d
 }
 END
 
+# Auto login root 
+mv /usr/lib/systemd/system/getty@.service /usr/lib/systemd/system/getty@.service.old
+awk '/^ExecStart/ {print "ExecStart=-/bin/agetty --autologin root --noclear %I $TERM"}' /usr/lib/systemd/system/getty@.service.old > /usr/lib/systemd/system/getty@.service
+
 
 # iproute2 tables
 cat >> /etc/iproute2/rt_tables <<-END
