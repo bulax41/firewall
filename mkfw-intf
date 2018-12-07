@@ -5,7 +5,7 @@ SYSCONFIG="/etc/sysconfig/network-scripts"
 
 usage () {
         echo
-        echo "Usage: mkfw-intf 'IN/OUT/MGMT' 'interface' 'ip address' {'tablename'} {'tableid'} {'gateway'}"
+        echo "Usage: mkfw-intf 'IN/OUT/MGMT' 'interface' 'ip address' "
         echo "Examples: "
         echo "          > mkfw-intf in eth0 10.1.2.1/24 "
         echo
@@ -21,9 +21,8 @@ fi
 
 DIRECTION=$(echo $1 |tr [:lower:] [:upper:])
 INT=$(echo $2 |tr [:upper:] [:lower:])
-TABLE=$(echo $4 |tr [:upper:] [:lower:])
-TABLEID=$5
-GATEWAY=$(echo $6 |tr [:upper:] [:lower:])
+NETWORK=$(ipcalc -n $3 | awk -F "=" '{print $2}')
+GATEWAY=$(echo $NETWORK | awk -F "." '{print $1.$2.$3.1}')
 
 if [ $DIRECTION != "IN" -a $DIRECTION != "OUT" -a $DIRECTION != "MGMT" ]; then
 	echo "Incorrect first arguement"
@@ -54,25 +53,23 @@ forwarding=0
 if [ $DIRECTION != "MGMT" ]; then
 	iptables -I $CHAIN_NAME -o $2 -j ${DIRECTION}BOUND
 	forwarding=1
-  if [ "x$TABLE" != "x" ]
-  then
-    echo "fwmark $((TABLEID)) lookup $TABLE" > $SYSCONFIG/rule-$INT
-    echo "0.0.0.0/0 via $GATEWAY table $TABLE " > $SYSCONFIG/route-$INT
-  fi
 
 
   if [ $DIRECTION == "IN" ]; then
     iptables -t mangle -I PREROUTING -i $2 -j OUTBOUND
+    echo "pref 80 iif lo to $NETWORK/$PREFIX lookup main" >> $SYSCONFIG/rule-$INT
   fi
 else
   LINE=$(iptables -L INPUT -nv --line-numbers | tail -1 | awk '{print $1}')
   iptables -I INPUT $LINE -i $2 -j ACCEPT
 
-  if [ "x$TABLE" != "x" ]
-  then
-    echo "fwmark $((TABLEID)) lookup $TABLE" > $SYSCONFIG/rule-$INT
-    echo "iif lo to 172.16.0.0/12 lookup $TABLE " >> $SYSCONFIG/rule-$INT
-    echo "0.0.0.0/0 via $GATEWAY table $TABLE " > $SYSCONFIG/route-$INT
+  echo "pref 50 fwmark 101 lookup wan"
+  echo "pref 51 fwmark 102 lookup trading"
+  echo "pref 100 iif lo to 10.0.0.0/8 lookup mgmt" >> $SYSCONFIG/rule-$INT
+  echo "pref 100 iif lo to 192.168.0.0/16 lookup mgmt" >> $SYSCONFIG/rule-$INT
+  echo "pref 100 iif lo to 172.16.0.0/12 lookup mgmt" >> $SYSCONFIG/rule-$INT
+  echo "0.0.0.0/0 via $GATEWAY table mgmt " > $SYSCONFIG/route-$INT
+
   fi
 
 fi

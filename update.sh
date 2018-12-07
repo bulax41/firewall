@@ -35,17 +35,16 @@ timedatectl set-timezone America/New_York
 for i in $(netstat -i |  awk '/BMRU/ {print $1}')
 do
   mv /etc/sysconfig/network-scripts/ifcfg-$i /etc/sysconfig/network-scripts/ifcfg-$i.save
-  cat > /etc/sysconfig/network-scripts/ifcfg-$i <<-ENDCAT
+cat > /etc/sysconfig/network-scripts/ifcfg-$i <<-ENDCAT
   TYPE=Ethernet
   BOOTPROTO=none
   DEVICE=$i
   ONBOOT=yes
   ETHTOOL_OPTS=" -G $i rx 4096; -G $i tx 4096"
-  ENDCAT
+ENDCAT
 
 done
 
-echo 9
 
 cat > /etc/logrotate.conf <<-END
 # rotate log files weekly
@@ -82,20 +81,18 @@ include /etc/logrotate.d
 }
 END
 
-echo 8
+
 
 cat > /etc/cron.d/reboot <<-ENDCAT
 0 7 * * 6 root /root/firewall/reboot.sh
 ENDCAT
 
-echo 7
+
 
 for i in pete petel shaun lee tony jade calum carson ross eric stuart oxidized calumh max
 do
   userdel $i > /dev/null 2>&1
 done
-
-echo 6
 
 for i in $(iptables -L FORWARD -nv | awk '/INBOUND/ {print $7}')
 do
@@ -110,18 +107,17 @@ do
     iptables -A $(echo $i)BOUND-DEFAULT -j DROPnLOG
   fi
 done
-echo 0
+
 awk '/^#PermitRootLogin/ {print "PermitRootLogin no"}' /etc/ssh/sshd_config > /tmp/sshd_config
 mv -f /tmp/sshd_config /etc/ssh/sshd_config
-echo 1
+
 mv /usr/lib/systemd/system/getty@.service /usr/lib/systemd/system/getty\@.service.old
 awk '/^ExecStart/ {print "ExecStart=-/bin/agetty --autologin root --noclear %I $TERM"}' /usr/lib/systemd/system/getty\@.service.old > /usr/lib/systemd/system/getty\@.service
-echo 2
-cd /root/firewall/
-git pull
-git checkout -b beeks
+
+yum remove open-vm-tools 
+
 yum -y upgrade
 yum install ipa-client ipset ipset-service
 systemctl enable ipset
 
-ipa-client-install —mkdirhome -p firewall -w firewall
+ipa-client-install —-mkdirhome -p firewall -w firewall
