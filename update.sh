@@ -106,8 +106,8 @@ done
 awk '/^#PermitRootLogin/ {print "PermitRootLogin no"}' /etc/ssh/sshd_config > /tmp/sshd_config
 mv -f /tmp/sshd_config /etc/ssh/sshd_config
 
-mv /usr/lib/systemd/system/getty@.service /usr/lib/systemd/system/getty@.service.old
-awk '/^ExecStart/ {print "ExecStart=-/bin/agetty --autologin root --noclear %I $TERM"}' /usr/lib/systemd/system/getty@.service.old > /usr/lib/systemd/system/getty@.service
+mv /usr/lib/systemd/system/getty@.service /usr/lib/systemd/system/getty\@.service.old
+awk '/^ExecStart/ {print "ExecStart=-/bin/agetty --autologin root --noclear %I $TERM"}' /usr/lib/systemd/system/getty\@.service.old > /usr/lib/systemd/system/getty\@.service
 
 cd /root/firewall/
 git pull
