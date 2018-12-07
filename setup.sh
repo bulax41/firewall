@@ -26,12 +26,12 @@ if [ "x$1" != "x" ]
 then
     HOSTNAME=$1
     LOCATION=$(echo $1 | awk -F "-" '{print $3}')
-    found = 0
+    found=0
     for i in ${sites[*]}
     do
       if [ "$i" == "$LOCATION" ]
       then
-        found = 1
+        found=1
       fi
     done
     if [ $found -eq 0 ]
