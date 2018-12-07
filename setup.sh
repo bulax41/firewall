@@ -10,17 +10,39 @@ fr2=72
 ty3=75
 hk1=76
 sgx=77
+sites = ("ld5","fr2","ny4","ch2","dc3","ty3","sgx","hk1")
 domain="beeks.local"
 
-HOSTNAME=""
+help() {
+  echo "usage: ./setup.sh {hostname}"
+  echo "hostname in the form of fwX-Y-Z"
+  echo "X = Mgmt Address 3rd Octect"
+  echo "Y = Customer name or other identifier"
+  echo "Site identifier: CH2, DC3, NY4, LD5, FR2, SGX, HK1, TY3"
+}
 
 if [ "x$1" != "x" ]
 then
     HOSTNAME=$1
     LOCATION=$(echo $1 | awk -F "-" '{print $3}')
-    FWNUM=$(echo $1 | cut -d "-" -f 1 | cut -c 3,4,5)
+    found = 0
+    for i in ${sites[*]}
+    do
+      if [ "$i" == "$LOCATION" ]
+      then
+        found = 1
+      fi
+    done
+    if [ $found -eq 0 ]
+    then
+      echo "Site $LOCATION not in ${sites[*]}"
+      help()
+      exit
+    fi
+
 else
-    echo
+    help()
+    exit
 fi
 
 # Packages
@@ -222,7 +244,7 @@ find /root/firewall/backups/ -mtime +30 -delete
 END
 chmod +x /etc/cron.daily/iptables_backup.sh
 
-cat > /etc/cron.d/reboot <<-ENDCAT
+cat > /etc/cron.d/reboot <<-END
 0 7 * * 6 root /root/firewall/reboot.sh
 END
 
@@ -262,22 +284,15 @@ include /etc/logrotate.d
 END
 
 
-if [ "x$HOSTNAME" != "x" ]
-then
-
 # iproute2 tables
-cat >> /etc/iproute2/rt_tables <<-END
-$mgmt mgmt
-$wan wan
-$trading trading
-END
+  cat >> /etc/iproute2/rt_tables <<-END
+  $mgmt mgmt
+  $wan wan
+  $trading trading
+  END
 
-echo $HOSTNAME > /etc/hostname
-cat > /etc/resolv.conf <<-END
-search beeks.local
-nameserver 10.$((LOCATION)).$((LOCATION)).254
-END
-
-
-
-fi
+  echo $HOSTNAME.$domain > /etc/hostname
+  cat > /etc/resolv.conf <<-END
+  search beeks.local
+  nameserver 10.$((LOCATION)).$((LOCATION)).254
+  END
