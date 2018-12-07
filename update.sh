@@ -9,6 +9,9 @@ then
   exit
 fi
 
+yum remove open-vm-tools
+yum clean all
+yum -y upgrade
 
 ### Backups
 mkdir -p /root/firewall/backups > /dev/null 2>&1
