@@ -4,9 +4,9 @@ trading=102
 mgmt=100
 ld5=74
 dc3=73
-ny4=71
+ny4=72
 ch2=70
-fr2=72
+fr2=71
 ty3=75
 hk1=76
 sgx=77
@@ -285,8 +285,8 @@ include /etc/logrotate.d
 END
 
 # Auto login root
-sed -i org '/^ExecStart.*$/c\ExecStart=-/bin/agetty --autologin root --noclear %I $TERM' /usr/lib/systemd/system/getty@.service
-sed -i org '/^#PermitRootLogin/c\PermitRootLogin no' /etc/ssh/sshd_config
+sed -i.org '/^ExecStart.*$/c\ExecStart=-/sbin/agetty --autologin root --noclear %I $TERM' /usr/lib/systemd/system/getty@.service
+sed -i.org '/^#PermitRootLogin/c\PermitRootLogin no' /etc/ssh/sshd_config
 
 
 # iproute2 tables

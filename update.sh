@@ -110,8 +110,8 @@ do
 done
 
 # Auto login root
-sed -i org '/^ExecStart.*$/c\ExecStart=-/bin/agetty --autologin root --noclear %I $TERM' /usr/lib/systemd/system/getty@.service
-sed -i org '/^#PermitRootLogin/c\PermitRootLogin no' /etc/ssh/sshd_config
+sed -i.org '/^ExecStart.*$/c\ExecStart=-/bin/agetty --autologin root --noclear %I $TERM' /usr/lib/systemd/system/getty@.service
+sed -i.org '/^#PermitRootLogin/c\PermitRootLogin no' /etc/ssh/sshd_config
 
 yum remove open-vm-tools
 
