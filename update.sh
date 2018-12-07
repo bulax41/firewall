@@ -25,6 +25,7 @@ find /root/firewall/backups/ -mtime +30 -delete
 
 END
 chmod +x /etc/cron.daily/iptables_backup.sh
+/etc/cron.daily/iptables_backup.sh
 
 hostname $HOSTNAME.beeks.local
 echo $HOSTNAME.beeks.local  > /etc/hostname
