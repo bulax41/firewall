@@ -70,7 +70,7 @@ else
   echo "pref 100 iif lo to 172.16.0.0/12 lookup mgmt" >> $SYSCONFIG/rule-$INT
   echo "0.0.0.0/0 via $GATEWAY table mgmt " > $SYSCONFIG/route-$INT
 
-  fi
+
 
 fi
 
