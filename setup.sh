@@ -285,11 +285,8 @@ include /etc/logrotate.d
 END
 
 # Auto login root
-mv /usr/lib/systemd/system/getty@.service /usr/lib/systemd/system/getty@.service.old
-sed -i '/^ExecStart.*$/c\ExecStart=-/bin/agetty --autologin root --noclear %I $TERM'/usr/lib/systemd/system/getty@.service.old > /usr/lib/systemd/system/getty@.service
-
-sed -i '/^#PermitRootLogin/c\PermitRootLogin no' /etc/ssh/sshd_config > /tmp/sshd_config
-mv -f /tmp/sshd_config /etc/ssh/sshd_config
+sed -i '/^ExecStart.*$/c\ExecStart=-/bin/agetty --autologin root --noclear %I $TERM' /usr/lib/systemd/system/getty@.service.old 
+sed -i '/^#PermitRootLogin/c\PermitRootLogin no' /etc/ssh/sshd_config
 
 
 # iproute2 tables
