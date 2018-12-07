@@ -5,7 +5,7 @@ SYSCONFIG="/etc/sysconfig/network-scripts"
 
 usage () {
         echo
-        echo "Usage: mkfw-intf 'IN/OUT/MGMT' 'interface' 'ip address' "
+        echo "Usage: mkfw-intf 'IN/OUT/MGMT/TRADING/WAN' 'interface' 'ip address' "
         echo "Examples: "
         echo "          > mkfw-intf in eth0 10.1.2.1/24 "
         echo
@@ -25,7 +25,7 @@ NETWORK=$(ipcalc -n $3 | awk -F "=" '{print $2}')
 PREFIX=$(ipcalc -p $3 | awk -F "=" '{print $2}')
 GATEWAY=$(echo $NETWORK | awk -F "." '{print $1.$2.$3.1}')
 
-if [ $DIRECTION != "IN" -a $DIRECTION != "OUT" -a $DIRECTION != "MGMT" ]; then
+if [ $DIRECTION != "IN" -a $DIRECTION != "OUT" -a $DIRECTION != "MGMT" -a $DIRECTION != "TRADING" -a $DIRECTION != "WAN"]; then
 	echo "Incorrect first arguement"
 	usage
 	exit
@@ -52,6 +52,13 @@ ENDCAT
 forwarding=0
 # Insert iptables rule
 if [ $DIRECTION != "MGMT" ]; then
+  if [ $DIRECTION == "TRADING" -o $DIRECTION == "WAN"]
+  then 
+    DIRECTION=OUT
+    TABLE=$(echo $DIRECTION |tr [:upper:] [:lower:])
+    echo "ip route 0.0.0.0/0 via $GATEWAY table $TABLE" >> $SYSCONFIG/route-$INT
+  fi
+
 	iptables -I $CHAIN_NAME -o $2 -j ${DIRECTION}BOUND
 	forwarding=1
 

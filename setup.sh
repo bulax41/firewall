@@ -233,7 +233,7 @@ grub2-mkconfig -o /boot/grub2/grub.cfg
 
 
 # Cron backup of iptables daily
-mkdir /root/firewall/backups
+mkdir /root/firewall/backups > /dev/null 2>&1
 cat > /etc/cron.daily/iptables_backup.sh <<-END
 #!/bin/bash
 iptables-save > /root/firewall/backups/iptables.\$(date +%Y%m%d)
@@ -286,9 +286,9 @@ END
 
 # Auto login root
 mv /usr/lib/systemd/system/getty@.service /usr/lib/systemd/system/getty@.service.old
-awk '/^ExecStart/ {print "ExecStart=-/bin/agetty --autologin root --noclear %I $TERM"}' /usr/lib/systemd/system/getty@.service.old > /usr/lib/systemd/system/getty@.service
+awk '/^ExecStart/ {print "ExecStart=-/bin/agetty --autologin root --noclear %I $TERM"} {print}' /usr/lib/systemd/system/getty@.service.old > /usr/lib/systemd/system/getty@.service
 
-awk '/^#PermitRootLogin/ {print "PermitRootLogin no"}' /etc/ssh/sshd_config > /tmp/sshd_config
+awk '/^#PermitRootLogin/ {print "PermitRootLogin no"} {print}' /etc/ssh/sshd_config > /tmp/sshd_config
 mv -f /tmp/sshd_config /etc/ssh/sshd_config
 
 

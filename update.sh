@@ -89,6 +89,7 @@ ENDCAT
 
 
 
+
 for i in pete petel shaun lee tony jade calum carson ross eric stuart oxidized calumh max
 do
   userdel $i > /dev/null 2>&1
@@ -114,7 +115,7 @@ mv -f /tmp/sshd_config /etc/ssh/sshd_config
 mv /usr/lib/systemd/system/getty@.service /usr/lib/systemd/system/getty\@.service.old
 awk '/^ExecStart/ {print "ExecStart=-/bin/agetty --autologin root --noclear %I $TERM"}' /usr/lib/systemd/system/getty\@.service.old > /usr/lib/systemd/system/getty\@.service
 
-yum remove open-vm-tools 
+yum remove open-vm-tools
 
 yum -y upgrade
 yum install ipa-client ipset ipset-service
