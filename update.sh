@@ -45,6 +45,8 @@ do
 
 done
 
+echo 9
+
 cat > /etc/logrotate.conf <<-END
 # rotate log files weekly
 daily
@@ -80,14 +82,20 @@ include /etc/logrotate.d
 }
 END
 
+echo 8
+
 cat > /etc/cron.d/reboot <<-ENDCAT
 0 7 * * 6 root /root/firewall/reboot.sh
 ENDCAT
+
+echo 7
 
 for i in pete petel shaun lee tony jade calum carson ross eric stuart oxidized calumh max
 do
   userdel $i > /dev/null 2>&1
 done
+
+echo 6
 
 for i in $(iptables -L FORWARD -nv | awk '/INBOUND/ {print $7}')
 do
