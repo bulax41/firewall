@@ -286,14 +286,14 @@ END
 
 
 # iproute2 tables
-  cat >> /etc/iproute2/rt_tables <<-END
-  $mgmt mgmt
-  $wan wan
-  $trading trading
-  END
+cat >> /etc/iproute2/rt_tables <<-END
+$mgmt mgmt
+$wan wan
+$trading trading
+END
 
-  echo $HOSTNAME.$domain > /etc/hostname
-  cat > /etc/resolv.conf <<-END
-  search beeks.local
-  nameserver 10.$((LOCATION)).$((LOCATION)).254
-  END
+echo $HOSTNAME.$domain > /etc/hostname
+cat > /etc/resolv.conf <<-END
+search beeks.local
+nameserver 10.$((LOCATION)).$((LOCATION)).254
+END
