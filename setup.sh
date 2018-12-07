@@ -20,7 +20,7 @@ then
     LOCATION=$(echo $1 | awk -F "-" '{print $3}')
     FWNUM=$(echo $1 | cut -d "-" -f 1 | cut -c 3,4,5)
 else
-    echo 
+    echo
 fi
 
 # Packages
@@ -41,6 +41,7 @@ systemctl --now disable chronyd
 systemctl --now enable ntpd
 systemctl --now disable strongswan
 systemctl --now disable openvpn@server
+systemctl enable ipset
 systemctl enable iptables
 systemctl enable snmpd
 systemctl enable zebra
@@ -213,9 +214,53 @@ mkdir /root/firewall/backups
 cat > /etc/cron.daily/iptables_backup.sh <<-END
 #!/bin/bash
 iptables-save > /root/firewall/backups/iptables.\$(date +%Y%m%d)
+ipset save > /root/firewall/backups/ipset.\$(date +%Y%m%d)
+ip rule > /root/firewall/backups/rules.\$(date +%Y%m%d)
+vtysh  vtysh -c "show run" > /root/firewall/backups/quagga.\$(date +%Y%m%d)
 find /root/firewall/backups/ -mtime +30 -delete
+
 END
 chmod +x /etc/cron.daily/iptables_backup.sh
+
+cat > /etc/cron.d/reboot <<-ENDCAT
+0 7 * * 6 root /root/firewall/reboot.sh
+END
+
+cat > /etc/logrotate.conf <<-END
+# rotate log files weekly
+daily
+
+# keep 4 weeks worth of backlogs
+rotate 7
+
+# create new (empty) log files after rotating old ones
+create
+
+# use date as a suffix of the rotated file
+dateext
+
+# uncomment this if you want your log files compressed
+compress
+
+# RPM packages drop log rotation information into this directory
+include /etc/logrotate.d
+
+# no packages own wtmp and btmp -- we'll rotate them here
+/var/log/wtmp {
+    monthly
+    create 0664 root utmp
+        minsize 1M
+    rotate 1
+}
+
+/var/log/btmp {
+    missingok
+    monthly
+    create 0600 root utmp
+    rotate 1
+}
+END
+
 
 if [ "x$HOSTNAME" != "x" ]
 then
@@ -230,7 +275,7 @@ END
 echo $HOSTNAME > /etc/hostname
 cat > /etc/resolv.conf <<-END
 search beeks.local
-nameserver 10.$((LOCATION)).$((LOCATION)).199
+nameserver 10.$((LOCATION)).$((LOCATION)).254
 END
 
 
