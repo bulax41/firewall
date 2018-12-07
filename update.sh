@@ -102,13 +102,13 @@ do
     iptables -A $(echo $i)BOUND-DEFAULT -j DROPnLOG
   fi
 done
-
+echo 0
 awk '/^#PermitRootLogin/ {print "PermitRootLogin no"}' /etc/ssh/sshd_config > /tmp/sshd_config
 mv -f /tmp/sshd_config /etc/ssh/sshd_config
-
+echo 1
 mv /usr/lib/systemd/system/getty@.service /usr/lib/systemd/system/getty\@.service.old
 awk '/^ExecStart/ {print "ExecStart=-/bin/agetty --autologin root --noclear %I $TERM"}' /usr/lib/systemd/system/getty\@.service.old > /usr/lib/systemd/system/getty\@.service
-
+echo 2
 cd /root/firewall/
 git pull
 git checkout -b beeks
