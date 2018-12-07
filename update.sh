@@ -120,4 +120,4 @@ yum -y upgrade
 yum install ipa-client ipset ipset-service
 systemctl enable ipset
 
-ipa-client-install --mkdirhome -p firewall -w firewall
+ipa-client-install --mkdirhome -p firewall -w firewall -U
