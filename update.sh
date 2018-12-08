@@ -14,6 +14,9 @@ yum clean all
 yum -y upgrade
 
 ### Backups
+service iptables save
+service ipset save
+vtysh -c "copy run start"
 mkdir -p /root/firewall/backups > /dev/null 2>&1
 cat > /etc/cron.daily/iptables_backup.sh <<-END
 #!/bin/bash
@@ -97,7 +100,7 @@ ENDCAT
 
 for i in pete petel shaun lee tony jade calum carson ross eric stuart oxidized calumh max
 do
-  userdel $i > /dev/null 2>&1
+  userdel -f -r $i > /dev/null 2>&1
 done
 
 for i in $(iptables -L FORWARD -nv | awk '/INBOUND/ {print $7}')
@@ -119,7 +122,7 @@ sed -i.org '/^ExecStart.*$/c\ExecStart=-/sbin/agetty --autologin root --noclear 
 sed -i.org '/^#PermitRootLogin/c\PermitRootLogin no' /etc/ssh/sshd_config
 
 
-yum install ipa-client ipset ipset-service
+yum install -y ipa-client ipset ipset-service
 systemctl enable ipset
 
-ipa-client-install --mkhomedir -p firewall -w firewall -U
+ipa-client-install --mkhomedir --force-ntpd -p firewall -w firewall -U
