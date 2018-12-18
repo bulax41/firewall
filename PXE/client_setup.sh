@@ -11,19 +11,9 @@ usage () {
 
 IPASERVER=10.70.70.254
 
-LOCATION=$(echo $1 | awk -F "-" '{print $3}')
-ME=$(hostname -a | awk -F "-" '{print $3}')
-if [ $ME != $LOCATION ];
-then
-  echo "hostname incorrect for this site: NY4 "
-  echo
-  usage
-  exit
-fi
-
 CCOUNT=$(echo $2 | wc -m)
 WCOUNT=$(echo $2 | tr : " " | wc -w)
-if [ $CCOUNT -ne 18 -o $WCOUNT -ne 6]
+if [ "$CCOUNT" != "18" -o "$WCOUNT" != "6"]
 then
   echo "MAC Address in incorrect format"
   echo
@@ -116,7 +106,7 @@ done
 
 ./mkfw-intf MGMT $INTF $IP
 
-ipa-client-install --mkhomedir -w firewall -p firewall -U 
+ipa-client-install --mkhomedir -w firewall -p firewall -U
 
 #raw end
 %end
