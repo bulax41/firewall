@@ -5,19 +5,21 @@ SYSCONFIG="/etc/sysconfig/network-scripts"
 
 usage () {
         echo
-        echo "Usage: mkfw-intf 'IN/OUT/MGMT/TRADING/WAN' 'interface' 'ip address' "
+        echo "Usage: mkfw-intf 'IN/OUT/MGMT/TRADING/WAN' 'interface' 'ip address' 'gateway'"
         echo "Examples: "
-        echo "          > mkfw-intf in eth0 10.1.2.1/24 "
+        echo "          > mkfw-intf in eth0 10.1.2.10/24 10.1.2.1"
         echo
 }
 
 
-if [ "x$1" = "x" -o "y$2" = "y" -o "z$3" = "z" ]; then
+if [ $# -ne 4 ]; then
 	echo "Incorrect number of arguments"
 	echo
 	usage
 	exit
 fi
+
+
 
 DIRECTION=$(echo $1 |tr [:lower:] [:upper:])
 INT=$(echo $2 |tr [:upper:] [:lower:])
@@ -53,7 +55,7 @@ forwarding=0
 # Insert iptables rule
 if [ $DIRECTION != "MGMT" ]; then
   if [ $DIRECTION == "TRADING" -o $DIRECTION == "WAN"]
-  then 
+  then
     DIRECTION=OUT
     TABLE=$(echo $DIRECTION |tr [:upper:] [:lower:])
     echo "ip route 0.0.0.0/0 via $GATEWAY table $TABLE" >> $SYSCONFIG/route-$INT
@@ -71,8 +73,9 @@ else
   LINE=$(iptables -L INPUT -nv --line-numbers | tail -1 | awk '{print $1}')
   iptables -I INPUT $LINE -i $2 -j ACCEPT
 
-  echo "pref 50 fwmark 101 lookup wan"
-  echo "pref 51 fwmark 102 lookup trading"
+  echo "pref 50 fwmark 101 lookup wan" >> $SYSCONFIG/rule-$INT
+  echo "pref 51 fwmark 102 lookup trading" >> $SYSCONFIG/rule-$INT
+  echo "pref 80 iif lo to $NETWORK/$PREFIX lookup main" >> $SYSCONFIG/rule-$INT
   echo "pref 100 iif lo to 10.0.0.0/8 lookup mgmt" >> $SYSCONFIG/rule-$INT
   echo "pref 100 iif lo to 192.168.0.0/16 lookup mgmt" >> $SYSCONFIG/rule-$INT
   echo "pref 100 iif lo to 172.16.0.0/12 lookup mgmt" >> $SYSCONFIG/rule-$INT
