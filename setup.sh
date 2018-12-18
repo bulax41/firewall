@@ -298,7 +298,7 @@ $wan wan
 $trading trading
 END
 
-hostname $HOSTNAME.$domain 
+hostname $HOSTNAME.$domain
 echo $HOSTNAME.$domain > /etc/hostname
 cat > /etc/resolv.conf <<-END
 search beeks.local
