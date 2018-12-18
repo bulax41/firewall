@@ -3,13 +3,12 @@
 
 usage () {
         echo
-        echo "Usage: client_setup.sh <hostname>  <MAC Address> <IP Address>"
+        echo "Usage: client_setup.sh <hostname>  <MAC Address> <ipaserver>"
         echo "Examples: "
-        echo "          > client_setup.sh fw45-customer-ny4 00:50:56:aa:62:21 10.72.72.45/24 "
+        echo "          > client_setup.sh fw45-customer-ny4 00:50:56:aa:62:21 10.72.72.254 "
         echo
 }
 
-IPASERVER=10.70.70.254
 
 CCOUNT=$(echo $2 | wc -m)
 WCOUNT=$(echo $2 | tr : " " | wc -w)
@@ -21,7 +20,7 @@ then
   exit
 fi
 
-IP=$3
+IPASERVER=$3
 ipcalc -c $IP > /dev/null 2>&1
 if [ "$?" != "0" ]
 then
@@ -30,9 +29,6 @@ then
   usage
   exit
 fi
-NETWORK=$(ipcalc -n $3 | awk -F "=" '{print $2}')
-PREFIX=$(ipcalc -p $3 | awk -F "=" '{print $2}')
-GATEWAY=$(echo $NETWORK | awk -F "." '{print $1.$2.$3.1}')
 
 MAC=$2
 PXEMAC=$(echo $MAC | tr : -)
