@@ -85,6 +85,8 @@ reboot
 %post --log=/root/post.log
 
 #raw
+cd /root/
+yum -y install wget
 wget ftp://$IPASERVER/pub/VMwareTools-10.2.5-8068406.tar.gz
 tar zxf VMwareTools-10.2.5-8068406.tar.gz
 cd vmware-tools-distrib
