@@ -13,7 +13,7 @@ IPASERVER=10.70.70.254
 
 CCOUNT=$(echo $2 | wc -m)
 WCOUNT=$(echo $2 | tr : " " | wc -w)
-if [ "$CCOUNT" != "18" -o "$WCOUNT" != "6"]
+if [ "$CCOUNT" != "18" -o "$WCOUNT" != "6" ]
 then
   echo "MAC Address in incorrect format"
   echo
