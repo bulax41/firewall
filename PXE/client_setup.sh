@@ -33,7 +33,7 @@ fi
 
 MAC=$2
 PXEMAC=$(echo $MAC | tr : -)
-cat > /var/lib/tftpboot/pxelinux.cfg/$PXEMAC <<END
+cat > /var/lib/tftpboot/pxelinux.cfg/01-$PXEMAC <<END
 default 1
 prompt 0
 timeout 300
