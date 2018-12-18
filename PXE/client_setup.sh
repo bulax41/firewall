@@ -21,7 +21,7 @@ then
 fi
 
 IPASERVER=$3
-ipcalc -c $IP > /dev/null 2>&1
+ipcalc -c $IPASERVER > /dev/null 2>&1
 if [ "$?" != "0" ]
 then
   echo "IP Address invalid."
