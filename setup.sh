@@ -11,7 +11,7 @@ ty3=75
 hk1=76
 sgx=77
 declare -a sites
-sites=("ld5" "fr2" "ny4" "ch2" "dc3" "ty3" "sgx" "hk1")
+sites=("ld5" "fr2" "ny4" "ch2" "dc3" "ty3" "sgx" "hk1" "ch1")
 domain="beeks.local"
 
 help() {
@@ -53,6 +53,7 @@ yum -y install ipset ipset-service wireshark zip ntp python2-pip strongswan open
 pip install --upgrade pip
 pip install python-telegram-bot --upgrade
 pip install configparser --upgrade
+
 
 # services
 systemctl --now disable firewalld
