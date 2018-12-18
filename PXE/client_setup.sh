@@ -83,8 +83,6 @@ reboot
 %end
 
 %post --log=/root/post.log
-exec < /dev/tty6 > /dev/tty6 2> /dev/tty6
-chvt 6
 
 #raw
 wget ftp://$IPASERVER/pub/VMwareTools-10.2.5-8068406.tar.gz
@@ -109,12 +107,9 @@ done
 
 ./mkfw-intf MGMT \$INTF \$IP
 
-ipa-client-install --mkhomedir -w firewall -p firewall -U
+#ipa-client-install --mkhomedir -w firewall -p firewall -U
 
 #raw end
-
-chvt 1
-exec < /dev/tty1 > /dev/tty1 2> /dev/tty1
 %end
 
 
