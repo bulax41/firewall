@@ -10,6 +10,7 @@ fr2=71
 ty3=75
 hk1=76
 sgx=77
+ch1=70
 declare -a sites
 sites=("ld5" "fr2" "ny4" "ch2" "dc3" "ty3" "sgx" "hk1" "ch1")
 domain="beeks.local"
