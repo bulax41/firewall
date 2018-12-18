@@ -92,7 +92,7 @@ tar zxf VMwareTools-10.2.5-8068406.tar.gz
 cd vmware-tools-distrib
 ./vmware-install.pl -d -f
 
-yum install git
+yum -y install git
 git clone -b beeks https://github.com/bulax41/firewall
 cd firewall
 ./setup $1
