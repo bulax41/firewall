@@ -95,7 +95,7 @@ cd vmware-tools-distrib
 cd /root/
 git clone -b beeks https://github.com/bulax41/firewall
 cd firewall
-./setup $1
+./setup.sh $1
 
 INTF=""
 MAC=$MAC
