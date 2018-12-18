@@ -30,6 +30,9 @@ then
   usage
   exit
 fi
+NETWORK=$(ipcalc -n $3 | awk -F "=" '{print $2}')
+PREFIX=$(ipcalc -p $3 | awk -F "=" '{print $2}')
+GATEWAY=$(echo $NETWORK | awk -F "." '{print $1.$2.$3.1}')
 
 MAC=$2
 PXEMAC=$(echo $MAC | tr : -)
@@ -108,7 +111,9 @@ do
   fi
 done
 
-./mkfw-intf MGMT \$INTF \$IP
+ifdown \$INTF 
+./mkfw-intf MGMT \$INTF \$IP \$GATEWAY
+
 
 #ipa-client-install --mkhomedir -w firewall -p firewall -U
 
