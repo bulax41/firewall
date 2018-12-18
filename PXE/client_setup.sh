@@ -23,7 +23,7 @@ fi
 
 IP=3
 ipcalc -c $IP > /dev/null 2>&1
-if [ $? -ne 0 ]
+if [ "$?" != "0" ]
 then
   echo "IP Address invalid."
   echo
