@@ -1,7 +1,10 @@
+#!/bin/bash
+
+PREFIX=10.70.70
+
 yum install syslinux dhcp tftp-server vsftpd xinetd
 cp -r /usr/share/syslinux/* /var/lib/tftpboot
 mkdir /var/lib/tftpboot/pxelinux.cfg
-touch /var/lib/tftpboot/pxelinux.cfg/default
 cat > /etc/dhcp/dhcpd.conf << END
 default-lease-time 604800;
 max-lease-time 18144000;
@@ -11,10 +14,10 @@ option classless-routes-win code 249 = array of unsigned integer 8;
 option domain-name "beeks.local";
 option domain-name-servers 10.70.70.254;
 
-subnet  10.70.70.0 netmask 255.255.255.0 {
-        range 10.70.70.200 10.70.70.249;
-        option routers 10.70.70.1;
-        next-server 10.70.70.254;
+subnet  $PREFIX.0 netmask 255.255.255.0 {
+        range $PREFIX.200 $PREFIX.249;
+        option routers $PREFIX.1;
+        next-server $PREFIX.254;
         filename "pxelinux.0";
 }
 

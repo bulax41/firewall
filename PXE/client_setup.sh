@@ -3,9 +3,9 @@
 
 usage () {
         echo
-        echo "Usage: client_setup.sh <hostname> <MAC Address>"
+        echo "Usage: client_setup.sh <hostname>  <MAC Address> <IP Address>"
         echo "Examples: "
-        echo "          > client_setup.sh fw45-customer-ny4  00:50:56:aa:62:21"
+        echo "          > client_setup.sh fw45-customer-ny4 00:50:56:aa:62:21 10.72.72.45/24 "
         echo
 }
 
@@ -26,6 +26,16 @@ WCOUNT=$(echo $2 | tr : " " | wc -w)
 if [ $CCOUNT -ne 18 -o $WCOUNT -ne 6]
 then
   echo "MAC Address in incorrect format"
+  echo
+  usage
+  exit
+fi
+
+IP=3
+ipcalc -c $IP > /dev/null 2>&1
+if [ $? -ne 0 ]
+then
+  echo "IP Address invalid."
   echo
   usage
   exit
@@ -83,7 +93,7 @@ reboot
 %end
 
 %post --log=/root/post.log
-
+#raw
 wget ftp://$IPASERVER/pub/VMwareTools-10.2.5-8068406.tar.gz
 tar zxf VMwareTools-10.2.5-8068406.tar.gz
 cd vmware-tools-distrib
@@ -94,6 +104,21 @@ git clone -b beeks https://github.com/bulax41/firewall
 cd firewall
 ./setup $1
 
+INTF=""
+MAC=$MAC
+for i in $(awk ' /^e/ {print $1}' /proc/net/dev | tr : " ")
+do
+  TMP=$(ip addr show $i | awk '/link\/ether/ {print $2}')
+  if [ $MAC == $TMP ]
+  then
+    INTF=$i
+done
+
+./mkfw-intf MGMT $INTF $IP
+
+ipa-client-install --mkhomedir -w firewall -p firewall -U 
+
+#raw end
 %end
 
 
