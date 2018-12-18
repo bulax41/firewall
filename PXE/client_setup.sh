@@ -86,13 +86,13 @@ reboot
 
 #raw
 cd /root/
-yum -y install wget
+yum -y install wget git perl
 wget ftp://$IPASERVER/pub/VMwareTools-10.2.5-8068406.tar.gz
 tar zxf VMwareTools-10.2.5-8068406.tar.gz
 cd vmware-tools-distrib
 ./vmware-install.pl -d -f
 
-yum -y install git
+cd /root/
 git clone -b beeks https://github.com/bulax41/firewall
 cd firewall
 ./setup $1
@@ -105,6 +105,7 @@ do
   if [ \$MAC == \$TMP ]
   then
     INTF=\$i
+  fi
 done
 
 ./mkfw-intf MGMT \$INTF \$IP
