@@ -27,7 +27,7 @@ NETWORK=$(ipcalc -n $3 | awk -F "=" '{print $2}')
 PREFIX=$(ipcalc -p $3 | awk -F "=" '{print $2}')
 GATEWAY=$(echo $NETWORK | awk -F "." '{print $1.$2.$3.1}')
 
-if [ $DIRECTION != "IN" -a $DIRECTION != "OUT" -a $DIRECTION != "MGMT" -a $DIRECTION != "TRADING" -a $DIRECTION != "WAN"]; then
+if [ $DIRECTION != "IN" -a $DIRECTION != "OUT" -a $DIRECTION != "MGMT" -a $DIRECTION != "TRADING" -a $DIRECTION != "WAN" ]; then
 	echo "Incorrect first arguement"
 	usage
 	exit
