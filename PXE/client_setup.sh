@@ -21,7 +21,7 @@ then
   exit
 fi
 
-IP=3
+IP=$3
 ipcalc -c $IP > /dev/null 2>&1
 if [ "$?" != "0" ]
 then
