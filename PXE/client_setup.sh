@@ -96,15 +96,15 @@ cd firewall
 
 INTF=""
 MAC=$MAC
-for i in $(awk ' /^e/ {print $1}' /proc/net/dev | tr : " ")
+for i in \$(awk ' /^e/ {print \$1}' /proc/net/dev | tr : " ")
 do
-  TMP=$(ip addr show $i | awk '/link\/ether/ {print $2}')
-  if [ $MAC == $TMP ]
+  TMP=\$(ip addr show \$i | awk '/link\/ether/ {print \$2}')
+  if [ \$MAC == \$TMP ]
   then
-    INTF=$i
+    INTF=\$i
 done
 
-./mkfw-intf MGMT $INTF $IP
+./mkfw-intf MGMT \$INTF \$IP
 
 ipa-client-install --mkhomedir -w firewall -p firewall -U
 
