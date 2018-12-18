@@ -100,22 +100,6 @@ git clone -b beeks https://github.com/bulax41/firewall
 cd firewall
 ./setup.sh $1
 
-INTF=""
-MAC=$MAC
-for i in \$(awk ' /^e/ {print \$1}' /proc/net/dev | tr : " ")
-do
-  TMP=\$(ip addr show \$i | awk '/link\/ether/ {print \$2}')
-  if [ \$MAC == \$TMP ]
-  then
-    INTF=\$i
-  fi
-done
-
-ifdown \$INTF 
-./mkfw-intf MGMT \$INTF \$IP \$GATEWAY
-
-
-#ipa-client-install --mkhomedir -w firewall -p firewall -U
 
 #raw end
 %end
