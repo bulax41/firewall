@@ -12,7 +12,7 @@ usage () {
 }
 
 
-if [ $# -ne 4 ]; then
+if [ $# -lt 3 ]; then
 	echo "Incorrect number of arguments"
 	echo
 	usage
@@ -60,7 +60,7 @@ elif [ $DIRECTION == "OUT" ]; then
 
   iptables -I $CHAIN_NAME -o $2 -j OUTBOUND
   forwarding=1
-  vtysh -c "conf term" -c "ip route 0.0.0.0/0 $4" -c "end" -c "copy run start"
+  vtysh -c "conf term" -c "ip route 0.0.0.0/0 $GATEWAY" -c "end" -c "copy run start"
 
 elif [ $DIRECTION == "IN" ]; then
 
@@ -69,7 +69,7 @@ elif [ $DIRECTION == "IN" ]; then
 	forwarding=1
   echo "pref 80 iif lo to $NETWORK/$PREFIX lookup main" >> $SYSCONFIG/rule-$INT
 
-elif [ $DIRECTION == "MGMT " ]; then
+elif [ $DIRECTION == "MGMT" ]; then
   LINE=$(iptables -L INPUT -nv --line-numbers | tail -1 | awk '{print $1}')
   iptables -I INPUT $LINE -i $2 -j ACCEPT
 
