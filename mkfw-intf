@@ -25,7 +25,7 @@ DIRECTION=$(echo $1 |tr [:lower:] [:upper:])
 INT=$(echo $2 |tr [:upper:] [:lower:])
 NETWORK=$(ipcalc -n $3 | awk -F "=" '{print $2}')
 PREFIX=$(ipcalc -p $3 | awk -F "=" '{print $2}')
-GATEWAY=$(echo $NETWORK | awk -F "." '{print $1.$2.$3.1}')
+GATEWAY=$(echo $NETWORK | awk -F "." '{printf "%s.%s.%s.1" $1 $2 $3}')
 
 if [ $DIRECTION != "IN" -a $DIRECTION != "OUT" -a $DIRECTION != "MGMT" -a $DIRECTION != "TRADING" -a $DIRECTION != "WAN" ]; then
 	echo "Incorrect first arguement"
