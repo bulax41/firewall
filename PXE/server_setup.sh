@@ -7,9 +7,9 @@ then
   exit
 fi
 
-yum install syslinux dhcp tftp-server vsftpd xinetd
+yum -y install syslinux dhcp tftp-server vsftpd xinetd
 cp -r /usr/share/syslinux/* /var/lib/tftpboot
-mkdir /var/lib/tftpboot/pxelinux.cfg
+mkdir /var/lib/tftpboot/pxelinux.cfg 2> /dev/null
 cat > /etc/dhcp/dhcpd.conf << END
 default-lease-time 604800;
 max-lease-time 18144000;
@@ -138,7 +138,7 @@ END
 
 wget http://mirror.team-cymru.com/CentOS/7.6.1810/isos/x86_64/CentOS-7-x86_64-Minimal-1810.iso
 mount -o loop CentOS-7-x86_64-Minimal-1810.iso /media/
-mkdir /var/lib/tftpboot/centos7
+mkdir /var/lib/tftpboot/centos7 2> /dev/null
 cp /media/images/pxeboot/vmlinuz  /var/lib/tftpboot/centos7/
 cp /media/images/pxeboot/initrd.img  /var/lib/tftpboot/centos7/
 cp -r /media/*  /var/ftp/pub/
