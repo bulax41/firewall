@@ -1,6 +1,11 @@
 #!/bin/bash
 
-PREFIX=10.70.70
+PREFIX=$1
+if [ "x$PREFIX" == "x" ]
+then
+  echo "Site prefix needed.  i.e. 10.X.X"
+  exit
+fi
 
 yum install syslinux dhcp tftp-server vsftpd xinetd
 cp -r /usr/share/syslinux/* /var/lib/tftpboot
