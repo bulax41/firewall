@@ -50,7 +50,7 @@ vtysh -c "conf term" -c "int $2" -c "ip address $3" -c "end" -c "copy run start"
 forwarding=0
 # Insert iptables rule
 
-if [ $DIRECTION == "TRADING" -o $DIRECTION == "WAN"]
+if [ $DIRECTION == "TRADING" -o $DIRECTION == "WAN" ]
 then
   TABLE=$(echo $DIRECTION |tr [:upper:] [:lower:])
   echo "ip route 0.0.0.0/0 via $GATEWAY table $TABLE" >> $SYSCONFIG/route-$INT
@@ -60,7 +60,7 @@ elif [ $DIRECTION == "OUT" ]; then
 
   iptables -I $CHAIN_NAME -o $2 -j OUTBOUND
   forwarding=1
-  vtysh -c "conf term" -c "ip route 0.0.0.0/0 $4" -c "end" -c "copy run start" 
+  vtysh -c "conf term" -c "ip route 0.0.0.0/0 $4" -c "end" -c "copy run start"
 
 elif [ $DIRECTION == "IN" ]; then
 
@@ -69,7 +69,7 @@ elif [ $DIRECTION == "IN" ]; then
 	forwarding=1
   echo "pref 80 iif lo to $NETWORK/$PREFIX lookup main" >> $SYSCONFIG/rule-$INT
 
-elif [ $DIRECTION == "MGMT "]; then
+elif [ $DIRECTION == "MGMT " ]; then
   LINE=$(iptables -L INPUT -nv --line-numbers | tail -1 | awk '{print $1}')
   iptables -I INPUT $LINE -i $2 -j ACCEPT
 
@@ -95,8 +95,6 @@ END
 
 sysctl -w net.ipv4.conf.$INT.forwarding=$forwarding
 sysctl -w net.ipv4.conf.$INT.rp_filter=0
-
-
 
 service iptables save
 ifup $2
