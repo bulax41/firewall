@@ -87,7 +87,7 @@ reboot
 cd /root/
 yum -y install wget git perl
 wget ftp://$IPASERVER/pub/VMwareTools-10.2.5-8068406.tar.gz
-tar zxf VMwareTools-10.2.5-8068406.tar.gz
+tar zxf VMwareTools.tar.gz
 cd vmware-tools-distrib
 ./vmware-install.pl -d -f
 
