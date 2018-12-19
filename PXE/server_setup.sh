@@ -17,7 +17,7 @@ authoritative;
 option classless-routes code 121 = array of unsigned integer 8;
 option classless-routes-win code 249 = array of unsigned integer 8;
 option domain-name "beeks.local";
-option domain-name-servers 10.70.70.254;
+option domain-name-servers $PREFIX.254;
 
 subnet  $PREFIX.0 netmask 255.255.255.0 {
         range $PREFIX.200 $PREFIX.249;
@@ -39,12 +39,12 @@ menu title ########## PXE Boot Menu ##########
 label 1
 menu label ^1)  CentOS 7 x64
 kernel centos7/vmlinuz
-append initrd=centos7/initrd.img method=ftp://$PREFIX.254/pub ks=ftp://$PREFIX/pub/centos7.cfg devfs=nomount
+append initrd=centos7/initrd.img method=ftp://$PREFIX.254/pub ks=ftp://$PREFIX.254/pub/centos7.cfg devfs=nomount
 
 label 2
 menu label ^2) Firewall
 kernel centos7/vmlinuz
-append initrd=centos7/initrd.img method=ftp://$PREFIX.254/pub ks=ftp://$PREFIX/pub/firewall.cfg devfs=nomount
+append initrd=centos7/initrd.img method=ftp://$PREFIX.254/pub ks=ftp://$PREFIX.254/pub/firewall.cfg devfs=nomount
 
 END
 
@@ -56,7 +56,7 @@ firewall --disabled
 # Install OS instead of upgrade
 install
 # Use FTP installation media
-url --url="ftp://10.70.70.254/pub/"
+url --url="ftp://$PREFIX.254/pub/"
 # Root password
 rootpw --plaintext VDIware123
 # System authorization information
@@ -94,7 +94,7 @@ firewall --disabled
 # Install OS instead of upgrade
 install
 # Use FTP installation media
-url --url="ftp://10.70.70.254/pub/"
+url --url="ftp://$PREFIX.254/pub/"
 # Root password
 rootpw --plaintext VDIware123
 # System authorization information
