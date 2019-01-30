@@ -54,6 +54,7 @@ if [ $DIRECTION == "TRADING" -o $DIRECTION == "WAN" ]
 then
   TABLE=$(echo $DIRECTION |tr [:upper:] [:lower:])
   echo "0.0.0.0/0 via $GATEWAY table $TABLE" >> $SYSCONFIG/route-$INT
+  echo "pref 80 iif lo to $NETWORK/$PREFIX lookup main" >> $SYSCONFIG/rule-$INT
   iptables -I $CHAIN_NAME -o $2 -j OUTBOUND
   forwarding=1
 elif [ $DIRECTION == "OUT" ]; then
