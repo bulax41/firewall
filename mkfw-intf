@@ -75,8 +75,8 @@ elif [ $DIRECTION == "MGMT" ]; then
   LINE=$(iptables -L OUTPUT -nv --line-numbers | tail -1 | awk '{print $1}')
   iptables -I OUTPUT $LINE -o $2 -j ACCEPT
 
-  echo "pref 50 fwmark 101 lookup wan" >> $SYSCONFIG/rule-$INT
-  echo "pref 51 fwmark 102 lookup trading" >> $SYSCONFIG/rule-$INT
+  echo "pref 50 fwmark 0x101 lookup wan" >> $SYSCONFIG/rule-$INT
+  echo "pref 51 fwmark 0x102 lookup trading" >> $SYSCONFIG/rule-$INT
   echo "pref 80 iif lo to $NETWORK/$PREFIX lookup main" >> $SYSCONFIG/rule-$INT
   echo "pref 100 iif lo to 10.0.0.0/8 lookup mgmt" >> $SYSCONFIG/rule-$INT
   echo "pref 100 iif lo to 192.168.0.0/16 lookup mgmt" >> $SYSCONFIG/rule-$INT

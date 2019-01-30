@@ -7,7 +7,7 @@ then
   exit
 fi
 
-yum -y install syslinux dhcp tftp-server vsftpd xinetd
+yum -y install syslinux dhcp tftp-server vsftpd xinetd wget
 cp -r /usr/share/syslinux/* /var/lib/tftpboot
 mkdir /var/lib/tftpboot/pxelinux.cfg 2> /dev/null
 cat > /etc/dhcp/dhcpd.conf << END
@@ -126,7 +126,7 @@ yum -y install ipset ipset-service wireshark zip ntp python2-pip strongswan open
 pip install --upgrade pip
 pip install python-telegram-bot --upgrade
 pip install configparser --upgrade
-wget ftp://$PREFIX.254/pub/VMwareTools-10.2.5-8068406.tar.gz
+wget ftp://$PREFIX.254/pub/VMwareTools.tar.gz
 tar zxf VMwareTools.tar.gz
 cd vmware-tools-distrib
 ./vmware-install.pl -d -f
