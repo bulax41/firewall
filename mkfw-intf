@@ -20,13 +20,13 @@ if [ $# -ne 4 ]; then
 fi
 
 
-INT=$(echo $2 |tr [:upper:] [:lower:])
-DEVICE=$3
-ADDRESS=$5
-NETWORK=$(ipcalc -n $5 | awk -F "=" '{print $2}')
-PREFIX=$(ipcalc -p $5 | awk -F "=" '{print $2}')
-GATEWAY=$6
-HWADDR=$(ip link show dev | awk '/ether/ {print $2}' )
+INT=$(echo $1 |tr [:upper:] [:lower:])
+DEVICE=$2
+ADDRESS=$4
+NETWORK=$(ipcalc -n $4 | awk -F "=" '{print $2}')
+PREFIX=$(ipcalc -p $4 | awk -F "=" '{print $2}')
+GATEWAY=$5
+HWADDR=$(ip link show dev $2 | awk '/ether/ {print $2}' )
 
 
 # Delete Any Previous Rules For Interface
