@@ -5,14 +5,14 @@ SYSCONFIG="/etc/sysconfig/network-scripts"
 
 usage () {
         echo
-        echo "Usage: mkfw-intf 'IN/OUT/MGMT/TRADING/WAN' 'interface' 'ip address' 'gateway'"
+        echo "Usage: mkfw-intf 'name' 'device' 'address' 'gateway'"
         echo "Examples: "
-        echo "          > mkfw-intf in eth0 10.1.2.10/24 10.1.2.1"
+        echo "          > mkfw-intf public0 eth1 10.1.2.10/24 10.1.2.1"
         echo
 }
 
 
-if [ $# -lt 3 ]; then
+if [ $# -ne 4 ]; then
 	echo "Incorrect number of arguments"
 	echo
 	usage
@@ -20,75 +20,77 @@ if [ $# -lt 3 ]; then
 fi
 
 
-
-DIRECTION=$(echo $1 |tr [:lower:] [:upper:])
 INT=$(echo $2 |tr [:upper:] [:lower:])
-NETWORK=$(ipcalc -n $3 | awk -F "=" '{print $2}')
-PREFIX=$(ipcalc -p $3 | awk -F "=" '{print $2}')
-GATEWAY=$4
+DEVICE=$3
+ADDRESS=$5
+NETWORK=$(ipcalc -n $5 | awk -F "=" '{print $2}')
+PREFIX=$(ipcalc -p $5 | awk -F "=" '{print $2}')
+GATEWAY=$6
+HWADDR=$(ip link show dev | awk '/ether/ {print $2}' )
 
 
 # Delete Any Previous Rules For Interface
-LINE=$(iptables -L $CHAIN_NAME -nv --line-numbers |awk "\$8 ~ /^$2\$/ {print \$1}")
+LINE=$(iptables -L $CHAIN_NAME -nv --line-numbers |awk "\$8 ~ /^$INT\$/ {print \$1}")
 if [ "x$LINE" != "x" ]; then
 	iptables -D $CHAIN_NAME $LINE
 fi
 
+# Delete Any Previous Rules For Device
+LINE=$(iptables -L $CHAIN_NAME -nv --line-numbers |awk "\$8 ~ /^$DEVICE\$/ {print \$1}")
+if [ "x$LINE" != "x" ]; then
+	iptables -D $CHAIN_NAME $LINE
+fi
+
+ifdown $DEVICE
+rm -f $SYSCONFIG/ifcfg-$DEVICE
+#
 # Bring up interface on boot
 cat > $SYSCONFIG/ifcfg-$INT <<-ENDCAT
 TYPE=Ethernet
 BOOTPROTO=none
 DEVICE=$INT
 ONBOOT=yes
+HWADDR=$HWADDR
 ETHTOOL_OPTS=" -G $INT rx 4096; -G $INT tx 4096"
 ENDCAT
 
+ifup $INT
 
 ## SET IP Address
-vtysh -c "conf term" -c "int $2" -c "ip address $3" -c "end" -c "copy run start"
+vtysh -c "conf term" -c "int $INT" -c "ip address $ADDRESS" -c "end" -c "copy run start"
 
-forwarding=0
+forwarding=1
 # Insert iptables rule
 
-if [ $DIRECTION == "TRADING" -o $DIRECTION == "WAN" ]
-then
-  TABLE=$(echo $DIRECTION |tr [:upper:] [:lower:])
-  echo "0.0.0.0/0 via $GATEWAY table $TABLE" >> $SYSCONFIG/route-$INT
+if [[ $INT =~ ^(wan).* ]]; then
+  iptables -I $CHAIN_NAME -o $INT -j OUTBOUND
+  echo "0.0.0.0/0 via $GATEWAY table wan" >> $SYSCONFIG/route-$INT
   echo "pref 80 iif lo to $NETWORK/$PREFIX lookup main" >> $SYSCONFIG/rule-$INT
-  iptables -I $CHAIN_NAME -o $2 -j OUTBOUND
-  forwarding=1
-elif [ $DIRECTION == "OUT" ]; then
-
-  iptables -I $CHAIN_NAME -o $2 -j OUTBOUND
-  forwarding=1
+  echo "pref 50 fwmark 0x101 lookup wan" >> $SYSCONFIG/rule-$INT
+elif [[ $INT =~ ^(trading).* ]]; then
+  iptables -I $CHAIN_NAME -o $INT -j OUTBOUND
+  echo "0.0.0.0/0 via $GATEWAY table trading" >> $SYSCONFIG/route-$INT
+  echo "pref 80 iif lo to $NETWORK/$PREFIX lookup main" >> $SYSCONFIG/rule-$INT
+  echo "pref 51 fwmark 0x102 lookup trading" >> $SYSCONFIG/rule-$INT
+elif [[ $INT =~ ^(public).* ]]; then
+  iptables -I $CHAIN_NAME -o $INT -j OUTBOUND
   vtysh -c "conf term" -c "ip route 0.0.0.0/0 $GATEWAY" -c "end" -c "copy run start"
-
-elif [ $DIRECTION == "IN" ]; then
-
-	iptables -I $CHAIN_NAME -o $2 -j INBOUND
-  iptables -t mangle -I PREROUTING -i $2 -j OUTBOUND
-	forwarding=1
+elif [[ $INT =~ ^(lan).* ]]; then
+  iptables -I $CHAIN_NAME -o $INT -j INBOUND
+  iptables -t mangle -I PREROUTING -i $INT -j OUTBOUND
   echo "pref 80 iif lo to $NETWORK/$PREFIX lookup main" >> $SYSCONFIG/rule-$INT
-
-elif [ $DIRECTION == "MGMT" ]; then
+elif [[ $INT =~ ^(mgmt).* ]]; then
   LINE=$(iptables -L INPUT -nv --line-numbers | tail -1 | awk '{print $1}')
   iptables -I INPUT $LINE -i $2 -j ACCEPT
   LINE=$(iptables -L OUTPUT -nv --line-numbers | tail -1 | awk '{print $1}')
   iptables -I OUTPUT $LINE -o $2 -j ACCEPT
-
-  echo "pref 50 fwmark 0x101 lookup wan" >> $SYSCONFIG/rule-$INT
-  echo "pref 51 fwmark 0x102 lookup trading" >> $SYSCONFIG/rule-$INT
+  forwarding=0
   echo "pref 80 iif lo to $NETWORK/$PREFIX lookup main" >> $SYSCONFIG/rule-$INT
   echo "pref 100 iif lo to 10.0.0.0/8 lookup mgmt" >> $SYSCONFIG/rule-$INT
   echo "pref 100 iif lo to 192.168.0.0/16 lookup mgmt" >> $SYSCONFIG/rule-$INT
   echo "pref 100 iif lo to 172.16.0.0/12 lookup mgmt" >> $SYSCONFIG/rule-$INT
   echo "0.0.0.0/0 via $GATEWAY table mgmt " > $SYSCONFIG/route-$INT
-else
-  echo "Incorrect first arguement"
-  usage
-  exit
 fi
-
 
 #set sysctl variable for forwarding or not.
 cat > /etc/sysctl.d/$INT.conf <<END
@@ -96,8 +98,5 @@ net.ipv4.conf.$INT.forwarding = $forwarding
 net.ipv4.conf.$INT.rp_filter = 0
 END
 
-sysctl -w net.ipv4.conf.$INT.forwarding=$forwarding
-sysctl -w net.ipv4.conf.$INT.rp_filter=0
-
+sysctl -p
 service iptables save
-ifup $2
