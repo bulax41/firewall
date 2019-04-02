@@ -12,7 +12,7 @@ usage () {
 }
 
 
-if [ $# -ge 3 ]; then
+if [ $# -le 2 ]; then
 	echo "Incorrect number of arguments"
 	echo
 	usage
