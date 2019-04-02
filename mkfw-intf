@@ -32,18 +32,22 @@ HWADDR=$(ip link show dev $DEVICE | awk '/ether/ {print $2}' )
 # Delete Any Previous Rules For Interface
 LINE=$(iptables -L $CHAIN_NAME -nv --line-numbers |awk "\$8 ~ /^$INT\$/ {print \$1}")
 if [ "x$LINE" != "x" ]; then
+  echo "Deleting old forward rule for $INT "
 	iptables -D $CHAIN_NAME $LINE
 fi
 
 # Delete Any Previous Rules For Device
 LINE=$(iptables -L $CHAIN_NAME -nv --line-numbers |awk "\$8 ~ /^$DEVICE\$/ {print \$1}")
 if [ "x$LINE" != "x" ]; then
+  echo "Deleting old forward rule for $DEVICE "
 	iptables -D $CHAIN_NAME $LINE
 fi
 
-ifdown $DEVICE
-rm -f $SYSCONFIG/ifcfg-$DEVICE
-#
+ip link set dev $DEVICE down
+[ -e $SYSCONFIG/ifcfg-$DEVICE ] && rm -f $SYSCONFIG/ifcfg-$DEVICE
+ip link set dev $DEVICE name $INT
+
+
 # Bring up interface on boot
 cat > $SYSCONFIG/ifcfg-$INT <<-ENDCAT
 TYPE=Ethernet
@@ -85,7 +89,7 @@ elif [[ $INT =~ ^(mgmt).* ]]; then
   LINE=$(iptables -L OUTPUT -nv --line-numbers | tail -1 | awk '{print $1}')
   iptables -I OUTPUT $LINE -o $2 -j ACCEPT
   forwarding=0
-  echo "pref 80 iif lo to $NETWORK/$PREFIX lookup main" >> $SYSCONFIG/rule-$INT
+  echo "pref 80 iif lo to $NETWORK/$PREFIX lookup main" > $SYSCONFIG/rule-$INT
   echo "pref 100 iif lo to 10.0.0.0/8 lookup mgmt" >> $SYSCONFIG/rule-$INT
   echo "pref 100 iif lo to 192.168.0.0/16 lookup mgmt" >> $SYSCONFIG/rule-$INT
   echo "pref 100 iif lo to 172.16.0.0/12 lookup mgmt" >> $SYSCONFIG/rule-$INT
@@ -98,5 +102,5 @@ net.ipv4.conf.$INT.forwarding = $forwarding
 net.ipv4.conf.$INT.rp_filter = 0
 END
 
-sysctl -p
+sysctl -p > /dev/null 2>&1
 service iptables save
