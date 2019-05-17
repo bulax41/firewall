@@ -290,7 +290,7 @@ END
 # Auto login root
 sed -i.org '/^ExecStart.*$/c\ExecStart=-/sbin/agetty --autologin root --noclear %I $TERM' /usr/lib/systemd/system/getty@.service
 sed -i.org '/^#PermitRootLogin/c\PermitRootLogin no' /etc/ssh/sshd_config
-
+sed -i.org "/^distroverpkg=centos-release/Gproxy=http://10.$((LOCATION)).$((LOCATION)).254" /etc/yum.conf
 
 # iproute2 tables
 cat >> /etc/iproute2/rt_tables <<-END
