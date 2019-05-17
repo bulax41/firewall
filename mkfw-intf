@@ -83,10 +83,6 @@ elif [[ $INT =~ ^(lan).* ]]; then
   iptables -t mangle -I PREROUTING -i $INT -j OUTBOUND
   echo "pref 80 iif lo to $NETWORK/$PREFIX lookup main" >> $SYSCONFIG/rule-$INT
 elif [[ $INT =~ ^(mgmt).* ]]; then
-  LINE=$(iptables -L INPUT -nv --line-numbers | tail -1 | awk '{print $1}')
-  iptables -I INPUT $LINE -i $INT -j ACCEPT
-  LINE=$(iptables -L OUTPUT -nv --line-numbers | tail -1 | awk '{print $1}')
-  iptables -I OUTPUT $LINE -o $INT -j ACCEPT
   forwarding=0
   echo "pref 80 iif lo to $NETWORK/$PREFIX lookup main" > $SYSCONFIG/rule-$INT
   echo "pref 100 iif lo to 10.0.0.0/8 lookup mgmt" >> $SYSCONFIG/rule-$INT

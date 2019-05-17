@@ -189,7 +189,7 @@ COMMIT
 -A INPUT -m state --state INVALID -j DROP
 -A INPUT -i lo -j ACCEPT
 -A INPUT -p icmp -m limit --limit 10/s -j ACCEPT
--A INPUT -p udp -m udp --dport 1194 -m limit --limit 5/s -j ACCEPT
+-A INPUT -i mgmt+ -j ACCEPT
 -A INPUT -p esp -j VPN_PEERS
 -A INPUT -p 47 -j VPN_PEERS
 -A INPUT -p udp -m udp --dport 500 -j VPN_PEERS
@@ -205,10 +205,7 @@ COMMIT
 -A OUTPUT -o lo -j ACCEPT
 -A OUTPUT -p icmp -j ACCEPT
 -A OUTPUT -o gre+ -j ACCEPT
--A OUTPUT -p udp -m udp --dport 53 -j ACCEPT
--A OUTPUT -p udp -m udp --dport 123 -j ACCEPT
--A OUTPUT -p tcp -m tcp --dport 80 -j ACCEPT
--A OUTPUT -p tcp -m tcp --dport 443 -j ACCEPT
+-A OUTPUT -o mgmt+ -j ACCEPT
 -A OUTPUT -p udp -m udp --dport 500 -j VPN_PEERS
 -A OUTPUT -p udp -m udp --dport 4500 -j VPN_PEERS
 -A OUTPUT -p esp -j VPN_PEERS
@@ -291,6 +288,7 @@ END
 sed -i.org '/^ExecStart.*$/c\ExecStart=-/sbin/agetty --autologin root --noclear %I $TERM' /usr/lib/systemd/system/getty@.service
 sed -i.org '/^#PermitRootLogin/c\PermitRootLogin no' /etc/ssh/sshd_config
 sed -i.org "/^distroverpkg=centos-release/ a proxy=http://10.$((LOCATION)).$((LOCATION)).254" /etc/yum.conf
+git config --global http.proxy http://10.$((LOCATION)).$((LOCATION)).254:3128
 
 # iproute2 tables
 cat >> /etc/iproute2/rt_tables <<-END
