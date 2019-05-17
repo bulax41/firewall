@@ -51,7 +51,7 @@ fi
 # Packages
 yum clean all
 yum -y install epel-release
-yum -y install ipset ipset-service wireshark zip ntp python2-pip strongswan openvpn easy-rsa iptables-services net-snmp net-tools quagga  sysstat traceroute telnet  policycoreutils-python bridge-utils libsemanage-python ipa-client nmap
+yum -y install ipset lldpd ipset-service wireshark zip ntp python2-pip strongswan openvpn easy-rsa iptables-services net-snmp net-tools quagga  sysstat traceroute telnet  policycoreutils-python bridge-utils libsemanage-python ipa-client nmap
 pip install --upgrade pip
 pip install python-telegram-bot --upgrade
 pip install configparser --upgrade
@@ -67,6 +67,7 @@ systemctl --now disable chronyd
 systemctl --now enable ntpd
 systemctl --now disable strongswan
 systemctl --now disable openvpn@server
+systemctl --now enable lldpd
 systemctl enable ipset
 systemctl enable iptables
 systemctl enable snmpd
@@ -287,7 +288,7 @@ END
 # Auto login root
 sed -i.org '/^ExecStart.*$/c\ExecStart=-/sbin/agetty --autologin root --noclear %I $TERM' /usr/lib/systemd/system/getty@.service
 sed -i.org '/^#PermitRootLogin/c\PermitRootLogin no' /etc/ssh/sshd_config
-sed -i.org "/^distroverpkg=centos-release/ a proxy=http://10.$((LOCATION)).$((LOCATION)).254" /etc/yum.conf
+sed -i.org "/^distroverpkg=centos-release/ a proxy=http://10.$((LOCATION)).$((LOCATION)).254:3128" /etc/yum.conf
 git config --global http.proxy http://10.$((LOCATION)).$((LOCATION)).254:3128
 
 # iproute2 tables
