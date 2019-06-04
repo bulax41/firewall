@@ -7,7 +7,7 @@ usage () {
         echo
         echo "Usage: mkfw-intf 'name' 'device' 'address' 'gateway'"
         echo "Examples: "
-        echo "          > mkfw-intf public0 eth1 10.1.2.10/24 10.1.2.1"
+        echo "          > mkfw-intf external0 eth1 10.1.2.10/24 10.1.2.1"
         echo
 }
 
@@ -75,10 +75,10 @@ elif [[ $INT =~ ^(trading).* ]]; then
   echo "0.0.0.0/0 via $GATEWAY table trading" >> $SYSCONFIG/route-$INT
   echo "pref 80 iif lo to $NETWORK/$PREFIX lookup main" >> $SYSCONFIG/rule-$INT
   echo "pref 51 fwmark 0x102 lookup trading" >> $SYSCONFIG/rule-$INT
-elif [[ $INT =~ ^(public).* ]]; then
+elif [[ $INT =~ ^(external).* ]]; then
   iptables -I $CHAIN_NAME -o $INT -j OUTBOUND
   vtysh -c "conf term" -c "ip route 0.0.0.0/0 $GATEWAY" -c "end" -c "copy run start"
-elif [[ $INT =~ ^(lan).* ]]; then
+elif [[ $INT =~ ^(internal).* ]]; then
   iptables -I $CHAIN_NAME -o $INT -j INBOUND
   iptables -t mangle -I PREROUTING -i $INT -j OUTBOUND
   echo "pref 80 iif lo to $NETWORK/$PREFIX lookup main" >> $SYSCONFIG/rule-$INT

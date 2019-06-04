@@ -11,7 +11,7 @@ ty3=75
 hk1=76
 sgx=77
 ch1=70
-lon1=74
+lon1=78
 declare -a sites
 sites=("ld5" "fr2" "ny4" "ch2" "dc3" "ty3" "sgx" "hk1" "ch1" "lon1")
 domain="beeks.local"
@@ -287,6 +287,7 @@ END
 
 # Auto login root
 sed -i.org '/^ExecStart.*$/c\ExecStart=-/sbin/agetty --autologin root --noclear %I $TERM' /usr/lib/systemd/system/getty@.service
+cp /usr/lib/systemd/system/getty\@.service /etc/systemd/system/getty\@tty1.service
 sed -i.org '/^#PermitRootLogin/c\PermitRootLogin no' /etc/ssh/sshd_config
 sed -i.org "/^distroverpkg=centos-release/ a proxy=http://10.$((LOCATION)).$((LOCATION)).254:3128" /etc/yum.conf
 git config --global http.proxy http://10.$((LOCATION)).$((LOCATION)).254:3128
