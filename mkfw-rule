@@ -75,3 +75,5 @@ do
   #log iptables -I $CHAIN $LNUM -j $JUMP $IPTABLESARGS
 
 done
+
+service iptables save

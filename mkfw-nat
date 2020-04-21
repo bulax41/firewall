@@ -1,6 +1,6 @@
 #!/bin/bash
 
-LOGFILE=/var/log/fwchangelog 
+LOGFILE=/var/log/fwchangelog
 COMMAND=mkfw-nat
 log() {
    message="$@"
@@ -32,8 +32,4 @@ if [ "x$3" = "xNAT" ]; then
 
 fi
 
-
-
-
-
-
+service iptables save

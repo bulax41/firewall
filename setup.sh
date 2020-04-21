@@ -250,6 +250,26 @@ cat > /etc/cron.d/reboot <<-END
 0 7 * * 6 root /root/firewall/reboot.sh
 END
 
+cat > /etc/snmp/snmpd.conf <<-END
+com2sec readonly  default         k9A5qr36lm33Lk9g
+
+group MyROGroup v2c        readonly
+view all    included  .1                               80
+access MyROGroup ""      any       noauth    exact  all    none   none
+
+syslocation NY4
+syscontact noc@beeksfx.com
+
+#Distro Detection
+#extend .1.3.6.1.4.1.2021.7890.1 distro /usr/bin/distro
+#Hardware Detection (uncomment to enable)
+extend .1.3.6.1.4.1.2021.7890.2 hardware '/bin/cat /sys/devices/virtual/dmi/id/product_name'
+extend .1.3.6.1.4.1.2021.7890.3 manufacturer '/bin/cat /sys/devices/virtual/dmi/id/sys_vendor'
+extend .1.3.6.1.4.1.2021.7890.4 serial '/bin/cat /sys/devices/virtual/dmi/id/product_serial'
+
+END
+
+
 cat > /etc/logrotate.conf <<-END
 # rotate log files weekly
 daily

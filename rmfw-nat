@@ -1,6 +1,6 @@
 #!/bin/bash
 
-LOGFILE=/var/log/fwchangelog 
+LOGFILE=/var/log/fwchangelog
 COMMAND=rmfw-nat
 log() {
    message="$@"
@@ -36,3 +36,4 @@ if [ "x$LINE" != "x" ]; then
         done
 fi
 
+service iptables save

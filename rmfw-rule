@@ -1,6 +1,6 @@
 #!/bin/bash
 
-LOGFILE=/var/log/fwchangelog 
+LOGFILE=/var/log/fwchangelog
 COMMAND=rmfw-rule
 log() {
    message="$@"
@@ -53,7 +53,7 @@ fi
 
 iptables -L $CHAIN -nv > /dev/null 2>&1
 if [ $? -ne 0 ]; then
-	echo 
+	echo
 	echo "There is no IP Rule for $CHAIN to delete"
 	echo
 	exit
@@ -62,5 +62,4 @@ fi
 iptables -D $CHAIN $3
 log iptables -D $CHAIN $3
 
-
-
+service iptables save
