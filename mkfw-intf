@@ -89,7 +89,7 @@ elif [[ $INT =~ ^(mgmt).* ]]; then
   echo "pref 100 iif lo to 192.168.0.0/16 lookup mgmt" >> $SYSCONFIG/rule-$INT
   echo "pref 100 iif lo to 172.16.0.0/12 lookup mgmt" >> $SYSCONFIG/rule-$INT
   echo "0.0.0.0/0 via $GATEWAY table mgmt " > $SYSCONFIG/route-$INT
-  echo "OPTIONS='-LS0-6d $ADDRESS'" >> $SYSCONFIG/snmpd
+  echo "OPTIONS='-LS0-6d $ADDRESS'" >> /etc/sysconfig/snmpd
 fi
 
 #set sysctl variable for forwarding or not.
