@@ -27,7 +27,7 @@ NETWORK=$(ipcalc -n $ADDRESS | awk -F "=" '{print $2}')
 PREFIX=$(ipcalc -p $ADDRESS | awk -F "=" '{print $2}')
 GATEWAY=$4
 HWADDR=$(ip link show dev $DEVICE | awk '/ether/ {print $2}' )
-
+IPADDR=$(echo $ADDRESS | awk -F "/" '{print $1}')
 
 # Delete Any Previous Rules For Interface
 LINE=$(iptables -L $CHAIN_NAME -nv --line-numbers |awk "\$8 ~ /^$INT\$/ {print \$1}")
@@ -89,8 +89,8 @@ elif [[ $INT =~ ^(mgmt).* ]]; then
   echo "pref 100 iif lo to 192.168.0.0/16 lookup mgmt" >> $SYSCONFIG/rule-$INT
   echo "pref 100 iif lo to 172.16.0.0/12 lookup mgmt" >> $SYSCONFIG/rule-$INT
   echo "0.0.0.0/0 via $GATEWAY table mgmt " > $SYSCONFIG/route-$INT
-  echo "OPTIONS='-LS0-6d $ADDRESS'" >> /etc/sysconfig/snmpd
-  sed -i.org "/^#ListenAddress/c\ListenAddress $ADDRESS" /etc/ssh/sshd_config
+  echo "OPTIONS='-LS0-6d $IPADDR'" >> /etc/sysconfig/snmpd
+  sed -i.org "/^#ListenAddress/c\ListenAddress $IPADDR" /etc/ssh/sshd_config
 fi
 
 #set sysctl variable for forwarding or not.
